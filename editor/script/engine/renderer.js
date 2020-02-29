@@ -87,6 +87,7 @@ function imageDataFromImageSource(imageSource, pal, col) {
 
 	var backgroundColor = getPaletteColor(pal,0);
 	var foregroundColor = getPaletteColor(pal,col);
+	var testColor = getPaletteColor(pal, 2);
 
 	for (var y = 0; y < tilesize; y++) {
 		for (var x = 0; x < tilesize; x++) {
@@ -105,6 +106,13 @@ function imageDataFromImageSource(imageSource, pal, col) {
 						img.data[pxl + 1] = backgroundColor.g;
 						img.data[pxl + 2] = backgroundColor.b;
 						img.data[pxl + 3] = 255;
+						if (px != 0) {
+							var testColor = getPaletteColor(pal, px); //feels kinda hacky we'd much prefer to get it pull it's color from an array with the pallete's colors popped in... but we can't get that to work
+							img.data[pxl + 0] = testColor.r;
+							img.data[pxl + 1] = testColor.g;
+							img.data[pxl + 2] = testColor.b;
+							img.data[pxl + 3] = 255;
+						}
 					}
 				}
 			}
