@@ -8,8 +8,8 @@ You can eventually clone or download this fork to mess with whatever we add to i
 
 # Bug reports
 If you find a bug in this fork of Bitsy, please submit [an issue here](https://github.com/Rathermaddy/bitsy/issues).
-If it's not in upstream don't bother the folks upstream oky? :3
+If it's not in upstream don't bother the folx upstream oky? :3
 
 # This fork
-Honestly we're just going to play with some weird ideas once we've read through the code to find what we want, possible intergrate some dialouge hacks.
+Honestly we're just going to play with some weird ideas once we've read through the code to find what we want, possibly integrate some dialogue hacks.
 Right now this readme is the only changed file :3
