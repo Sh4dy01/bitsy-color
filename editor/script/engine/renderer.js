@@ -87,7 +87,6 @@ function imageDataFromImageSource(imageSource, pal, col) {
 
 	var backgroundColor = getPaletteColor(pal,0);
 	var foregroundColor = getPaletteColor(pal,col);
-	var testColor = getPaletteColor(pal, 2);
 
 	for (var y = 0; y < tilesize; y++) {
 		for (var x = 0; x < tilesize; x++) {

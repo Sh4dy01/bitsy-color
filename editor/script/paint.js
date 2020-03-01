@@ -219,25 +219,41 @@ function PaintTool(canvas, roomTool) {
 		ctx.fillStyle = "rgb("+getPal(curPal())[0][0]+","+getPal(curPal())[0][1]+","+getPal(curPal())[0][2]+")";
 		ctx.fillRect(0,0,canvas.width,canvas.height);
 
-		//pixel color
+		var remap = 1;
+		//remapped color
 		if (self.drawing.type == TileType.Tile) {
-			ctx.fillStyle = "rgb("+getPal(curPal())[1][0]+","+getPal(curPal())[1][1]+","+getPal(curPal())[1][2]+")";
+			remap = tile[self.drawing.id].col;
 		}
-		else if (self.drawing.type == TileType.Sprite || self.drawing.type == TileType.Avatar || self.drawing.type == TileType.Item) {
-			ctx.fillStyle = "rgb("+getPal(curPal())[2][0]+","+getPal(curPal())[2][1]+","+getPal(curPal())[2][2]+")";
+		else if (self.drawing.type == TileType.Sprite || self.drawing.type == TileType.Avatar) {
+			remap = sprite[self.drawing.id].col;
+		}
+		else if (self.drawing.type == TileType.Item) {
+			remap = item[self.drawing.id].col;
 		}
 
 		//draw pixels
 		for (var x = 0; x < 8; x++) {
 			for (var y = 0; y < 8; y++) {
 				// draw alternate frame
-				if (self.isCurDrawingAnimated && curDrawingAltFrameData()[y][x] === 1) {
+				if (self.isCurDrawingAnimated && curDrawingAltFrameData()[y][x] != 0) {
 					ctx.globalAlpha = 0.3;
-					ctx.fillRect(x*paint_scale,y*paint_scale,1*paint_scale,1*paint_scale);
+					if (curDrawingAltFrameData()[y][x] != 1) {
+						ctx.fillStyle = "rgb(" + getPal(curPal())[curDrawingAltFrameData()[y][x]][0] + "," + getPal(curPal())[curDrawingAltFrameData()[y][x]][1] + "," + getPal(curPal())[curDrawingAltFrameData()[y][x]][2] + ")";
+					}
+					else {
+						ctx.fillStyle = "rgb(" + getPal(curPal())[remap][0] + "," + getPal(curPal())[remap][1] + "," + getPal(curPal())[remap][2] + ")";
+					}
+					ctx.fillRect(x * paint_scale, y * paint_scale, 1 * paint_scale, 1 * paint_scale);
 					ctx.globalAlpha = 1;
 				}
 				// draw current frame
-				if (curDrawingData()[y][x] === 1) {
+				if (curDrawingData()[y][x] != 0) {
+					if (curDrawingData()[y][x] != 1) {
+						ctx.fillStyle = "rgb(" + getPal(curPal())[curDrawingData()[y][x]][0] + "," + getPal(curPal())[curDrawingData()[y][x]][1] + "," + getPal(curPal())[curDrawingData()[y][x]][2] + ")";
+					}
+					else {
+						ctx.fillStyle = "rgb(" + getPal(curPal())[remap][0] + "," + getPal(curPal())[remap][1] + "," + getPal(curPal())[remap][2] + ")";
+					}
 					ctx.fillRect(x*paint_scale,y*paint_scale,1*paint_scale,1*paint_scale);
 				}
 			}
@@ -323,6 +339,20 @@ function PaintTool(canvas, roomTool) {
 
 		if(toggleWallUI != null && toggleWallUI != undefined) // a bit hacky
 			toggleWallUI(checked);
+	}
+
+	this.changeCol = function (colID) {
+
+		if (self.drawing.type == TileType.Tile) {
+			tile[self.drawing.id].col = colID;
+		}
+		else if (self.drawing.type == TileType.Sprite || self.drawing.type == TileType.Avatar) {
+			sprite[self.drawing.id].col = colID;
+		}
+		else if (self.drawing.type == TileType.Item) {
+			item[self.drawing.id].col = colID;
+		}
+		refreshGameData();
 	}
 
 	this.getCurObject = function() {
