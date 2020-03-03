@@ -108,6 +108,7 @@ function PaintTool(canvas, roomTool) {
 	var self = this; // feels a bit hacky
 
 	var paint_scale = 32;
+	var curPaintColor;
 	var curPaintBrush = 0;
 	var isPainting = false;
 	this.isCurDrawingAnimated = false; // TODO eventually this can be internal
@@ -134,6 +135,11 @@ function PaintTool(canvas, roomTool) {
 	canvas.addEventListener("touchmove", onTouchMove);
 	canvas.addEventListener("touchend", onTouchEnd);
 
+	//painting color selector could be down better
+	curPaintColor = document.getElementById("paintColor");
+	curPaintColor.addEventListener("input", changePaintColor);
+	curPaintColor.value = 1;
+
 	// TODO : 
 	function onMouseDown(e) {
 		e.preventDefault();
@@ -157,7 +163,7 @@ function PaintTool(canvas, roomTool) {
 		// var y = Math.floor(off.y / paint_scale);
 
 		if (curDrawingData()[y][x] == 0) {
-			curPaintBrush = 1;
+			curPaintBrush = curPaintColor.value;
 		}
 		else {
 			curPaintBrush = 0;
@@ -212,6 +218,20 @@ function PaintTool(canvas, roomTool) {
 	function onTouchEnd(e) {
 		e.preventDefault();
 		onMouseUp();
+	}
+
+	//hacky hacky pain in the butt
+	function changePaintColor(e) {
+		var testCol = e.target.value;
+		console.log(getPal(curPal()).length);
+		if (testCol != 0 & testCol != null & testCol != undefined) {
+			if (testCol < getPal(curPal()).length) {
+				curPaintColor.value = testCol;
+			}
+			else {
+				curPaintColor.value = 1;
+			}
+		}
 	}
 
 	this.updateCanvas = function() {

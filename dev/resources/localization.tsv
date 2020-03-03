@@ -177,3 +177,4 @@ exit_return_label	return exit		saída de retorno			точка возвращен
 marker_moving	moving	en train de bouger	movendo			перемещаю	flyttar	verschiebe...		hreyfing	ezt mozgatod	movanta		移动	przesuwanie...		hayu-tlatawa
 default_end_dlg	The end	Fin	Fim			конец	slut	Ende		Endir	Itt a vége, fuss el véle!	Ludofino		结束	Koniec		alta kopit hihi
 destination_label	destination	destination	destino			точка прибытия	destination	Ausgang		ákvörðunarstaður	érkezés	celo		目的地	cel wyjścia		ko
+brush_color	brush color
