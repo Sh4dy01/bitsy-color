@@ -1259,7 +1259,7 @@ function parseWorld(file) {
 			i = parseItem(lines, i);
 		}
 		else if (getType(curLine) === "DRW") {
-            i = parseDrawing(lines, i); //row.push(parseInt(l.charAt(x) 
+            i = parseDrawing(lines, i); 
 		}
 		else if (getType(curLine) === "DLG") {
 			i = parseDialog(lines, i);
@@ -1642,7 +1642,7 @@ function parseRoom(lines, i) {
 		var y = 0;
 		for (; i<end; i++) {
 			room[id].tilemap.push( [] );
-			var lineSep = lines[i].split(",");
+            var lineSep = lines[i].split(",");
 			for (x = 0; x<mapsize; x++) {
 				room[id].tilemap[y].push( lineSep[x] );
 			}
@@ -2019,7 +2019,8 @@ function parseDrawingCore(lines, i, drwId) {
         while (y < tilesize) {
             var l = lines[i + y];
             var row = [];
-            var lineSep = lines[i].split(",");
+            var lineSep = l.split(",");
+            console.log(lineSep);
             for (x = 0; x < tilesize; x++) {
                 row.push(parseInt(lineSep[x]));
             }
