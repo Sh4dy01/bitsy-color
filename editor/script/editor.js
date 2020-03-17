@@ -453,7 +453,8 @@ function refreshGameData() {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled form editor data)
 	}
 
-	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+    flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+    flags.DRAW_FORMAT = 1;
 
 	// var gameData = serializeWorld();
 

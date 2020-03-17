@@ -77,7 +77,8 @@ function getEngineVersion() {
 var flags;
 function resetFlags() {
 	flags = {
-		ROOM_FORMAT : 0 // 0 = non-comma separated, 1 = comma separated
+        ROOM_FORMAT: 0, // 0 = non-comma separated, 1 = comma separated
+		DRAW_FORMAT: 0 // 0 = non-comma separated, 1 = comma separated
 	};
 }
 resetFlags(); //init flags on load script
@@ -1258,7 +1259,7 @@ function parseWorld(file) {
 			i = parseItem(lines, i);
 		}
 		else if (getType(curLine) === "DRW") {
-			i = parseDrawing(lines, i);
+            i = parseDrawing(lines, i); //row.push(parseInt(l.charAt(x) 
 		}
 		else if (getType(curLine) === "DLG") {
 			i = parseDialog(lines, i);
@@ -1555,7 +1556,8 @@ function serializeDrawing(drwId) {
 		for (y in imageSource[f]) {
 			var rowStr = "";
 			for (x in imageSource[f][y]) {
-				rowStr += imageSource[f][y][x];
+                rowStr += imageSource[f][y][x];
+                if (x < imageSource[f][y].length - 1) rowStr += ","
 			}
 			drwStr += rowStr + "\n";
 		}
@@ -2009,31 +2011,61 @@ function parseDrawing(lines, i) {
 }
 
 function parseDrawingCore(lines, i, drwId) {
-	var frameList = []; //init list of frames
-	frameList.push( [] ); //init first frame
-	var frameIndex = 0;
-	var y = 0;
-	while ( y < tilesize ) {
-		var l = lines[i+y];
-		var row = [];
-		for (x = 0; x < tilesize; x++) {
-			row.push( parseInt( l.charAt(x) ) );
-		}
-		frameList[frameIndex].push( row );
-		y++;
+    if (flags.DRAW_FORMAT == 1) {
+        var frameList = []; //init list of frames
+        frameList.push([]); //init first frame
+        var frameIndex = 0;
+        var y = 0;
+        while (y < tilesize) {
+            var l = lines[i + y];
+            var row = [];
+            var lineSep = lines[i].split(",");
+            for (x = 0; x < tilesize; x++) {
+                row.push(parseInt(lineSep[x]));
+            }
+            frameList[frameIndex].push(row);
+            y++;
 
-		if (y === tilesize) {
-			i = i + y;
-			if ( lines[i] != undefined && lines[i].charAt(0) === ">" ) {
-				// start next frame!
-				frameList.push( [] );
-				frameIndex++;
-				//start the count over again for the next frame
-				i++;
-				y = 0;
-			}
-		}
-	}
+            if (y === tilesize) {
+                i = i + y;
+                if (lines[i] != undefined && lines[i].charAt(0) === ">") {
+                    // start next frame!
+                    frameList.push([]);
+                    frameIndex++;
+                    //start the count over again for the next frame
+                    i++;
+                    y = 0;
+                }
+            }
+        }
+    }
+    else {
+        var frameList = []; //init list of frames
+        frameList.push([]); //init first frame
+        var frameIndex = 0;
+        var y = 0;
+        while (y < tilesize) {
+            var l = lines[i + y];
+            var row = [];
+            for (x = 0; x < tilesize; x++) {
+                row.push(parseInt(l.charAt(x)));
+            }
+            frameList[frameIndex].push(row);
+            y++;
+
+            if (y === tilesize) {
+                i = i + y;
+                if (lines[i] != undefined && lines[i].charAt(0) === ">") {
+                    // start next frame!
+                    frameList.push([]);
+                    frameIndex++;
+                    //start the count over again for the next frame
+                    i++;
+                    y = 0;
+                }
+            }
+        }
+    }
 
 	renderer.SetImageSource(drwId, frameList);
 
