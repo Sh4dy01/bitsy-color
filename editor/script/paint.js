@@ -108,7 +108,8 @@ function PaintTool(canvas, roomTool) {
 	var self = this; // feels a bit hacky
 
 	var paint_scale = 32;
-	var curPaintColor;
+    var curPaintColor;
+    var paintColorDummy = 0;
 	var curPaintBrush = 0;
 	var isPainting = false;
 	this.isCurDrawingAnimated = false; // TODO eventually this can be internal
@@ -163,7 +164,7 @@ function PaintTool(canvas, roomTool) {
 		// var y = Math.floor(off.y / paint_scale);
 
 		if (curDrawingData()[y][x] == 0) {
-			curPaintBrush = curPaintColor.value;
+			curPaintBrush = paintColorDummy;
 		}
 		else {
 			curPaintBrush = 0;
@@ -222,16 +223,28 @@ function PaintTool(canvas, roomTool) {
 
 	//hacky hacky pain in the butt
 	function changePaintColor(e) {
-		var testCol = e.target.value;
-		console.log(getPal(curPal()).length);
-		if (testCol != 0 & testCol != null & testCol != undefined) {
-			if (testCol < getPal(curPal()).length) {
-				curPaintColor.value = testCol;
-			}
-			else {
-				curPaintColor.value = 1;
-			}
-		}
+        var testCol = e.target.value;
+        console.log(testCol);
+        testCol.replace(/[^0-9]/g, "");
+        if (testCol.trim !== "") {
+            console.log(testCol);
+            if (testCol < getPal(curPal()).length) {
+                curPaintColor.value = parseInt(testCol);
+                if (curPaintColor.value == "NaN") {
+                    curPaintColor.value = "";
+                    paintColorDummy = 0;
+                }
+                else {
+                    paintColorDummy = parseInt(testCol);
+                }
+            }
+            else {
+                curPaintColor.value = "";
+                paintColorDummy = 0;
+            }
+        }
+        else { paintColorDummy = 0;}
+        console.log(paintColorDummy);
 	}
 
 	this.updateCanvas = function() {
