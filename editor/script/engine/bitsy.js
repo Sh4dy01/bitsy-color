@@ -1863,7 +1863,6 @@ function parseDrawingCore(lines, i, drwId) {
             var l = lines[i + y];
             var row = [];
             var lineSep = l.split(",");
-            console.log(lineSep);
             for (x = 0; x < tilesize; x++) {
                 row.push(parseInt(lineSep[x]));
             }

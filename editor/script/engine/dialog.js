@@ -127,7 +127,7 @@ var DialogRenderer = function() {
 		char.SetPosition(row,col);
 		char.ApplyEffects(effectTime);
 
-		var charData = char.bitmap;
+        var charData = char.bitmap;
 
 		var top = (4 * scale) + (row * 2 * scale) + (row * font.getHeight() * text_scale) + Math.floor( char.offset.y );
 		var left = (4 * scale) + (leftPos * text_scale) + Math.floor( char.offset.x );
@@ -138,16 +138,25 @@ var DialogRenderer = function() {
 			for (var x = 0; x < char.width; x++) {
 
 				var i = (y * char.width) + x;
-				if ( charData[i] == 1 ) {
+				if ( charData[i] != 0 ) {
 
 					//scaling nonsense
 					for (var sy = 0; sy < text_scale; sy++) {
 						for (var sx = 0; sx < text_scale; sx++) {
-							var pxl = 4 * ( ((top+(y*text_scale)+sy) * (textboxInfo.width*scale)) + (left+(x*text_scale)+sx) );
-							textboxInfo.img.data[pxl+0] = char.color.r;
-							textboxInfo.img.data[pxl+1] = char.color.g;
-							textboxInfo.img.data[pxl+2] = char.color.b;
-							textboxInfo.img.data[pxl+3] = char.color.a;
+                            var pxl = 4 * (((top + (y * text_scale) + sy) * (textboxInfo.width * scale)) + (left + (x * text_scale) + sx));
+                            if (charData[i] == 1) {
+                                textboxInfo.img.data[pxl + 0] = char.color.r;
+                                textboxInfo.img.data[pxl + 1] = char.color.g;
+                                textboxInfo.img.data[pxl + 2] = char.color.b;
+                                textboxInfo.img.data[pxl + 3] = char.color.a;
+                            }
+                            else {
+                                var drawCol = getColorAtCurPal(charData[i]);
+                                textboxInfo.img.data[pxl + 0] = drawCol.r;
+                                textboxInfo.img.data[pxl + 1] = drawCol.g;
+                                textboxInfo.img.data[pxl + 2] = drawCol.b;
+                                textboxInfo.img.data[pxl + 3] = char.color.a;
+                            }
 						}
 					}
 				}
@@ -171,7 +180,24 @@ var DialogRenderer = function() {
 		
 		// call printHandler for character
 		char.OnPrint();
-	};
+    };
+
+    function getColorAtCurPal(colorIndex) { //copied from renderer
+        paletteId = "default";
+        
+        var palette = getPal(curPal());
+        if (colorIndex > palette.length) {
+            colorIndex = 0;
+        }
+
+        var color = palette[colorIndex];
+
+        return {
+            r: color[0],
+            g: color[1],
+            b: color[2]
+        };
+    }
 
 	var effectTime = 0; // TODO this variable should live somewhere better
 	this.Draw = function(buffer, dt) {
