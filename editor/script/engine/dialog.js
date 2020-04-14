@@ -243,7 +243,7 @@ var DialogBuffer = function() {
 	var nextCharTimer = 0;
 	var nextCharMaxTime = 50; // in milliseconds
 	var isDialogReadyToContinue = false;
-	var activeTextEffects = [];
+    var activeTextEffects = [];
 	var font = null;
 	var arabicHandler = new ArabicHandler();
 	var onDialogEndCallbacks = [];
@@ -447,9 +447,10 @@ var DialogBuffer = function() {
 		this.ApplyEffects = function(time) {
 			// console.log("APPLY EFFECTS! " + time);
 			for(var i = 0; i < this.effectList.length; i++) {
-				var effectName = this.effectList[i];
+                var effectName = this.effectList[i].name;
+                var parameters = this.effectList[i].parameters; //passing undefined or null shouldn't be a problem?
 				// console.log("FX " + effectName);
-				TextEffects[ effectName ].DoEffect( this, time );
+				TextEffects[ effectName ].DoEffect( this, time, parameters );
 			}
 		}
 
@@ -749,14 +750,20 @@ var DialogBuffer = function() {
 	}
 
 	/* new text effects */
-	this.HasTextEffect = function(name) {
-		return activeTextEffects.indexOf( name ) > -1;
+    this.HasTextEffect = function (name) {
+        return activeTextEffects.findIndex(test => test.name === name) > -1;
 	}
-	this.AddTextEffect = function(name) {
-		activeTextEffects.push( name );
-	}
+    this.AddTextEffect = function (name, parameters) {
+        if (parameters == null || parameters == undefined) {
+            activeTextEffects.push({ name: name });
+        }
+        else {
+            activeTextEffects.push({ name: name, parameters: parameters });
+        }
+    }
 	this.RemoveTextEffect = function(name) {
-		activeTextEffects.splice( activeTextEffects.indexOf( name ), 1 );
+        activeTextEffects.splice(activeTextEffects.findIndex(test => test.name === name), 1);
+        console.log("removed effect")
 	}
 
 	/* this is a hook for GIF rendering */
@@ -959,9 +966,21 @@ var ColorEffect = function(index) {
 		char.color.a = 255;
 	}
 };
+var ColorEffectV2 = function() {
+	this.DoEffect = function(char,time,index) {
+		var pal = getPal( curPal() );
+		var color = pal[ parseInt( index ) ];
+		// console.log(color);
+		char.color.r = color[0];
+		char.color.g = color[1];
+		char.color.b = color[2];
+		char.color.a = 255;
+	}
+};
 TextEffects["clr1"] = new ColorEffect(0);
 TextEffects["clr2"] = new ColorEffect(1); // TODO : should I use parameters instead of special names?
 TextEffects["clr3"] = new ColorEffect(2);
+TextEffects["clr"] = new ColorEffectV2();
 
 var WavyEffect = function() {
 	this.DoEffect = function(char,time) {
