@@ -495,7 +495,9 @@ function duplicateDialog() {
 }
 
 function deleteDialog() {
-	if (curDialogEditorId != null && curDialogEditorId != titleDialogId) {
+	var shouldDelete = confirm("Are you sure you want to delete this dialog?");
+
+	if (shouldDelete && curDialogEditorId != null && curDialogEditorId != titleDialogId) {
 		var tempDialogId = curDialogEditorId;
 
 		nextDialog();
@@ -535,7 +537,7 @@ function deleteDialog() {
 
 		alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked = false;
 
-		events.Raise("dialog_update", { dialogId:tempDialogId, editorId:null });
+		events.Raise("dialog_delete", { dialogId:tempDialogId, editorId:null });
 	}
 }
 
@@ -857,6 +859,9 @@ function start() {
 
 		// TODO -- over time I can move more things in here
 		// on the other hand this is still sort of global thing that we don't want TOO much of
+
+		// force re-load the dialog tool
+		openDialogTool(titleDialogId);
 	});
 
 	isPlayerEmbeddedInEditor = true; // flag for game player to make changes specific to editor
@@ -870,6 +875,17 @@ function start() {
 	detectBrowserFeatures();
 
 	readUrlFlags();
+
+	// load icons and replace placeholder elements
+	var elements = document.getElementsByClassName("bitsy_icon");
+	for(var i = 0; i < elements.length; i++) {
+		iconUtils.LoadIcon(elements[i]);
+	}
+
+	var elements = document.getElementsByClassName("bitsy_icon_anim");
+	for(var i = 0; i < elements.length; i++) {
+		iconUtils.LoadIconAnimated(elements[i]);
+	}
 
 	// localization
 	if (urlFlags["lang"] != null) {
@@ -1530,14 +1546,14 @@ function reloadTile() {
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_more";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
 		renderAnimationPreview( drawing.id );
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
 		document.getElementById("animatedCheckbox").checked = false;
 		document.getElementById("animation").setAttribute("style","display:none;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_less";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
 
 	// wall UI
@@ -1562,11 +1578,11 @@ function updateWallCheckboxOnCurrentTile() {
 
 	if (isCurTileWall) {
 		document.getElementById("wallCheckbox").checked = true;
-		document.getElementById("wallCheckboxIcon").innerHTML = "border_outer";
+		iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), "wall_on");
 	}
 	else {
 		document.getElementById("wallCheckbox").checked = false;
-		document.getElementById("wallCheckboxIcon").innerHTML = "border_clear";
+		iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), "wall_off");
 	}
 }
 
@@ -1588,14 +1604,14 @@ function reloadSprite() {
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_more";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
 		renderAnimationPreview( drawing.id );
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
 		document.getElementById("animatedCheckbox").checked = false;
 		document.getElementById("animation").setAttribute("style","display:none;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_less";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
 
 	// dialog UI
@@ -1627,14 +1643,14 @@ function reloadItem() {
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_more";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
 		renderAnimationPreview( drawing.id );
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
 		document.getElementById("animatedCheckbox").checked = false;
 		document.getElementById("animation").setAttribute("style","display:none;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_less";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
 
 	// dialog UI
@@ -1654,22 +1670,20 @@ function deleteDrawing() {
 function toggleToolBar(e) {
 	if( e.target.checked ) {
 		document.getElementById("toolsPanel").style.display = "flex";
-		document.getElementById("toolsCheckIcon").innerHTML = "expand_more";
 	}
 	else {
 		document.getElementById("toolsPanel").style.display = "none";
-		document.getElementById("toolsCheckIcon").innerHTML = "expand_less";
 	}
 }
 
 function toggleDownloadOptions(e) {
 	if( e.target.checked ) {
 		document.getElementById("downloadOptions").style.display = "block";
-		document.getElementById("downloadOptionsCheckIcon").innerHTML = "expand_more";
+		iconUtils.LoadIcon(document.getElementById("downloadOptionsCheckIcon"), "expand_more");
 	}
 	else {
 		document.getElementById("downloadOptions").style.display = "none";
-		document.getElementById("downloadOptionsCheckIcon").innerHTML = "expand_less";
+		iconUtils.LoadIcon(document.getElementById("downloadOptionsCheckIcon"), "expand_less");
 	}
 }
 
@@ -1685,6 +1699,8 @@ function on_edit_mode() {
 	roomTool.listenEditEvents();
 
 	markerTool.RefreshKeepSelection();
+
+	reloadDialogUI();
 
 	updateInventoryUI();
 
@@ -1725,7 +1741,7 @@ function on_play_mode() {
 
 function updatePlayModeButton() {
 	document.getElementById("playModeCheck").checked = isPlayMode;
-	document.getElementById("playModeIcon").innerHTML = isPlayMode ? "stop" : "play_arrow";
+	iconUtils.LoadIcon(document.getElementById("playModeIcon"), isPlayMode ? "stop" : "play");
 
 	var stopText = localization.GetStringOrFallback("stop_game", "stop");
 	var playText = localization.GetStringOrFallback("play_game", "play");
@@ -1734,7 +1750,7 @@ function updatePlayModeButton() {
 
 function updatePreviewDialogButton() {
 	document.getElementById("previewDialogCheck").checked = isPreviewDialogMode;
-	document.getElementById("previewDialogIcon").innerHTML = isPreviewDialogMode ? "stop" : "play_arrow";
+	iconUtils.LoadIcon(document.getElementById("previewDialogIcon"), isPreviewDialogMode ? "stop" : "play");
 
 	var stopText = localization.GetStringOrFallback("stop_game", "stop");
 	var previewText = localization.GetStringOrFallback("dialog_start_preview", "preview");
@@ -1743,26 +1759,26 @@ function updatePreviewDialogButton() {
 
 function togglePaintGrid(e) {
 	paintTool.drawPaintGrid = e.target.checked;
-	document.getElementById("paintGridIcon").innerHTML = paintTool.drawPaintGrid ? "visibility" : "visibility_off";
+	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), paintTool.drawPaintGrid ? "visibility" : "visibility_off");
 	paintTool.updateCanvas();
 }
 
 function toggleMapGrid(e) {
 	roomTool.drawMapGrid = e.target.checked;
-	document.getElementById("roomGridIcon").innerHTML = roomTool.drawMapGrid ? "visibility" : "visibility_off";
+	iconUtils.LoadIcon(document.getElementById("roomGridIcon"), roomTool.drawMapGrid ? "visibility" : "visibility_off");
 	roomTool.drawEditMap();
 }
 
 function toggleCollisionMap(e) {
 	roomTool.drawCollisionMap = e.target.checked;
-	document.getElementById("roomWallsIcon").innerHTML = roomTool.drawCollisionMap ? "visibility" : "visibility_off";
+	iconUtils.LoadIcon(document.getElementById("roomWallsIcon"), roomTool.drawCollisionMap ? "visibility" : "visibility_off");
 	roomTool.drawEditMap();
 }
 
 var showFontDataInGameData = false;
 function toggleFontDataVisibility(e) {
 	showFontDataInGameData = e.target.checked;
-	document.getElementById("fontDataIcon").innerHTML = e.target.checked ? "visibility" : "visibility_off";
+	iconUtils.LoadIcon(document.getElementById("fontDataIcon"), e.target.checked ? "visibility" : "visibility_off");
 	refreshGameData(); // maybe a bit expensive
 }
 
@@ -2228,7 +2244,7 @@ function on_toggle_wall(e) {
 }
 
 function toggleWallUI(checked) {
-	document.getElementById("wallCheckboxIcon").innerHTML = checked ? "border_outer" : "border_clear";
+	iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), checked ? "wall_on" : "wall_off");
 }
 
 function filenameFromGameTitle() {
@@ -2239,6 +2255,11 @@ function filenameFromGameTitle() {
 }
 
 function exportGame() {
+	if (isPlayMode) {
+		alert("You can't download your game while you're playing it! Sorry :(");
+		return;
+	}
+
 	refreshGameData(); //just in case
 	// var gameData = document.getElementById("game_data").value; //grab game data
 	var gameData = getFullGameData();
@@ -2277,7 +2298,7 @@ function toggleInstructions(e) {
 	else {
 		div.style.display = "none";
 	}
-	document.getElementById("instructionsCheckIcon").innerHTML = e.target.checked ? "expand_more" : "expand_less";
+	iconUtils.LoadIcon(document.getElementById("instructionsCheckIcon"), e.target.checked ? "expand_more" : "expand_less");
 }
 
 //todo abstract this function into toggleDiv
@@ -2289,7 +2310,7 @@ function toggleVersionNotes(e) {
 	else {
 		div.style.display = "none";
 	}
-	document.getElementById("versionNotesCheckIcon").innerHTML = e.target.checked ? "expand_more" : "expand_less";
+	iconUtils.LoadIcon(document.getElementById("versionNotesCheckIcon"), e.target.checked ? "expand_more" : "expand_less");
 }
 
 /* MARKERS (exits & endings) */
@@ -2378,7 +2399,7 @@ function toggleRoomMarkers(visible) {
 	roomTool.areMarkersVisible = visible;
 	roomTool.drawEditMap();
 	document.getElementById("roomMarkersCheck").checked = visible;
-	document.getElementById("roomMarkersIcon").innerHTML = visible ? "visibility" : "visibility_off";
+	iconUtils.LoadIcon(document.getElementById("roomMarkersIcon"), visible ? "visibility" : "visibility_off");
 }
 
 function onChangeExitTransitionEffect(effectId, exitIndex) {
@@ -2561,6 +2582,7 @@ function startRecordingGif() {
 
 	document.getElementById("gifStartButton").style.display="none";
 	document.getElementById("gifSnapshotButton").style.display="none";
+	document.getElementById("gifSnapshotModeButton").style.display="none";
 	document.getElementById("gifStopButton").style.display="inline";
 	document.getElementById("gifRecordingText").style.display="inline";
 	document.getElementById("gifPreview").style.display="none";
@@ -2577,6 +2599,17 @@ var gifCaptureWidescreenSize = {
 	width : 726, // height * 1.26
 	height : 576
 };
+
+var isGifSnapshotLandscape = false;
+function toggleSnapshotMode() {
+	isGifSnapshotLandscape = !isGifSnapshotLandscape;
+
+	var modeDesc = isGifSnapshotLandscape ? "snapshot mode: landscape" : "snapshot mode: square";
+	document.getElementById("gifSnapshotModeButton").title = modeDesc;
+
+	var iconName = isGifSnapshotLandscape ? "pagesize_landscape" : "pagesize_full";
+	iconUtils.LoadIcon(document.getElementById("gifSnapshotModeIcon"), iconName);
+}
 
 function takeSnapshotGif(e) {
 	var gif = {
@@ -2596,7 +2629,7 @@ function takeSnapshotGif(e) {
 	drawRoom( room[curRoom], gifCaptureCtx, 1 );
 	var frame1 = gifCaptureCtx.getImageData(0,0,512,512);
 
-	if(e.altKey) {
+	if (isGifSnapshotLandscape) {
 		/* widescreen */
 		gif.width = gifCaptureWidescreenSize.width;
 		gif.height = gifCaptureWidescreenSize.height;
@@ -2643,6 +2676,7 @@ function finishRecordingGif(gif) {
 
 	document.getElementById("gifStartButton").style.display="none";
 	document.getElementById("gifSnapshotButton").style.display="none";
+	document.getElementById("gifSnapshotModeButton").style.display="none";
 	document.getElementById("gifStopButton").style.display="none";
 	document.getElementById("gifRecordingText").style.display="none";
 	document.getElementById("gifEncodingText").style.display="inline";
@@ -2656,16 +2690,11 @@ function finishRecordingGif(gif) {
 
 	setTimeout( function() {
 		var hexPalette = [];
+
 		// add black & white
 		hexPalette.push( rgbToHex(0,0,0).slice(1) ); // need to slice off leading # (should that safeguard go in gif.js?)
 		hexPalette.push( rgbToHex(255,255,255).slice(1) );
-		// add all user defined palette colors
-		for (id in palette) {
-			for (i in getPal(id)){
-				var hexStr = rgbToHex( getPal(id)[i][0], getPal(id)[i][1], getPal(id)[i][2] ).slice(1);
-				hexPalette.push( hexStr );
-			}
-		}
+
 		// add rainbow colors (for rainbow text effect)
 		hexPalette.push( hslToHex(0.0,1,0.5).slice(1) );
 		hexPalette.push( hslToHex(0.1,1,0.5).slice(1) );
@@ -2678,6 +2707,20 @@ function finishRecordingGif(gif) {
 		hexPalette.push( hslToHex(0.8,1,0.5).slice(1) );
 		hexPalette.push( hslToHex(0.9,1,0.5).slice(1) );
 
+		// add all user defined palette colors
+		for (id in palette) {
+			for (i in getPal(id)){
+				var hexStr = rgbToHex( getPal(id)[i][0], getPal(id)[i][1], getPal(id)[i][2] ).slice(1);
+
+				// gif palettes max out at 256 colors
+				// this avoids totally breaking the gif if a game has more colors than that
+				// TODO : make this smarter by keeping track palettes of visited rooms
+				if (hexPalette.length < 256) {
+					hexPalette.push( hexStr );
+				}
+			}
+		}
+
 		gif.palette = hexPalette; // hacky
 
 		gifencoder.encode( gif, 
@@ -2688,6 +2731,7 @@ function finishRecordingGif(gif) {
 				document.getElementById("gifPreview").style.display="block";
 				document.getElementById("gifPlaceholder").style.display="none";
 				document.getElementById("gifSnapshotButton").style.display="inline";
+				document.getElementById("gifSnapshotModeButton").style.display="inline";
 
 				if( browserFeatures.blobURL ) {
 					document.getElementById("gifDownload").href = makeURL.createObjectURL( blob );
@@ -2706,9 +2750,12 @@ function finishRecordingGif(gif) {
 
 /* LOAD FROM FILE */
 function importGameFromFile(e) {
-	resetGameData();
+	if (isPlayMode) {
+		alert("You can't upload a game while you're playing one! Sorry :(");
+		return;
+	}
 
-	console.log("IMPORT START");
+	resetGameData();
 
 	// load file chosen by user
 	var files = e.target.files;
@@ -2720,9 +2767,6 @@ function importGameFromFile(e) {
 		var fileText = reader.result;
 		gameDataStr = exporter.importGame( fileText );
 
-		console.log("import load end");
-		// console.log(gameDataStr);
-		
 		// change game data & reload everything
 		document.getElementById("game_data").value = gameDataStr;
 		on_game_data_change();
@@ -2778,7 +2822,7 @@ function on_toggle_animated() {
 			addItemAnimation();
 		}
 		document.getElementById("animation").setAttribute("style","display:block;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_more";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
 		console.log(drawing.id);
 		renderAnimationPreview( drawing.id );
 	}
@@ -2794,7 +2838,7 @@ function on_toggle_animated() {
 			removeItemAnimation();
 		}
 		document.getElementById("animation").setAttribute("style","display:none;");
-		document.getElementById("animatedCheckboxIcon").innerHTML = "expand_less";
+		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
 	renderPaintThumbnail( drawing.id );
 }
@@ -3543,3 +3587,6 @@ function showFontMissingCharacterWarning() {
 function hideFontMissingCharacterWarning() {
 	document.getElementById("fontMissingCharacter").style.display = "none";
 }
+
+/* ICONS */
+var iconUtils = new IconUtils(); // TODO : move?
