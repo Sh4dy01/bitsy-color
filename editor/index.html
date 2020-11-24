@@ -831,25 +831,37 @@
 						</button>
 					</div>
 
-					<form id="colorPaletteForm">
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionBackground" onclick="changeColorPickerIndex(0);" checked>
-						<label id="colorPaletteLabelBackground" for="colorPaletteOptionBackground" title="pick background color">
-							<span class="bitsy_icon icon_space_right">room</span>
-							<span class="localize palette_background">background color</span>
-						</label>
+                    <div id="colorPaletteViewport">
+                        <div id="colorPaletteContent">
+                            <form id="colorPaletteForm">
+                                <span id="colorPaletteFormInner">
+                                    <input type="radio" name="colorPalette" value="background" id="colorPaletteOptionBackground" onclick="changeColorPickerIndex(0);" checked>
+                                    <label id="colorLabel_0" for="colorPaletteOptionBackground" title="pick background color">
+                                        <span class="bitsy_icon icon_space_right">room</span>
+                                        <span class="localize palette_background">background color</span>
+                                    </label>
 
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionTile" onclick="changeColorPickerIndex(1);">
-						<label id="colorPaletteLabelTile" for="colorPaletteOptionTile" title="pick tile color">
-							<span class="bitsy_icon icon_space_right">tile</span>
-							<span class="localize palette_tile">tile color</span>
-						</label>
+                                    <input type="radio" name="colorPalette" value="background" id="colorPaletteOptionTile" onclick="changeColorPickerIndex(1);">
+                                    <label id="colorLabel_1" for="colorPaletteOptionTile" title="pick tile color">
+                                        <span class="bitsy_icon icon_space_right">tile</span>
+                                        <span class="localize palette_tile">tile color</span>
+                                    </label>
 
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionSprite" onclick="changeColorPickerIndex(2);">
-						<label id="colorPaletteLabelSprite" for="colorPaletteOptionSprite" title="pick sprite / avatar / item color">
-							<span class="bitsy_icon icon_space_right">sprite</span>
-							<span class="localize palette_sprite">sprite color</span>
-						</label>
-					</form>
+                                    <input type="radio" name="colorPalette" value="background" id="colorPaletteOptionSprite" onclick="changeColorPickerIndex(2);">
+                                    <label id="colorLabel_2" for="colorPaletteOptionSprite" title="pick sprite / avatar / item color">
+                                        <span class="bitsy_icon icon_space_right">sprite</span>
+                                        <span class="localize palette_sprite">sprite color</span>
+                                    </label>
+                                </span>
+                                <div id="colorPaletteAdd" style="display:inline-block;">
+                                    <button title="add color" onclick="addColor(); return false;">
+                                        <span class="bitsy_icon">add</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
 
 					<div id="colorPicker" title="color picker">
 						<canvas id="colorPickerWheel"></canvas>
