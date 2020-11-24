@@ -984,8 +984,8 @@ function start() {
 
 	// init color picker
 	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg', 'colorPickerHexText');
-	document.getElementById("colorPaletteOptionBackground").checked = true;
-    paletteTool = new PaletteTool(colorPicker,"paletteName"); //,selectColor
+    paletteTool = new PaletteTool(colorPicker, selectColor,"paletteName"); //,selectColor
+    
 	events.Listen("palette_change", function(event) {
 		refreshGameData();
 	});
@@ -2077,11 +2077,21 @@ function renderAnimationPreview(id) {
 	renderAnimationThumbnail( "animationThumbnailFrame1", id, 0 );
 	renderAnimationThumbnail( "animationThumbnailFrame2", id, 1 );
 }
-function selectColor(index) {
-    paintTool.setPaintColor(index);
+function selectColor() {
+    console.log(this);
+    var colors = getPal(paletteTool.GetSelectedId());
+    var lastIndex = colors.length - 1;
+    if (this.value === undefined || this.value === null || this.value > lastIndex) {
+        paintTool.setPaintColor(0);
+        paletteTool.changeColorPickerIndex(0);
+    } else {
+        paintTool.setPaintColor(this.value);
+        paletteTool.changeColorPickerIndex(this.value);
+    }
 }
 
 function selectPaint() {
+    console.log(this);
 	if (drawing.id === this.value) {
 		showPanel("paintPanel", "paintExplorerPanel");
 	}
