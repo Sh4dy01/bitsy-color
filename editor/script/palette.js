@@ -3,7 +3,7 @@ TODO:
 - is PaletteTool the best name?
 - should it create its own color picker?
 */
-function PaletteTool(colorPicker,labelIds,nameFieldId) {
+function PaletteTool(colorPicker,nameFieldId) { //,colorCallback
 	var self = this;
 
 	var colorPickerIndex = 0;
@@ -37,14 +37,30 @@ function PaletteTool(colorPicker,labelIds,nameFieldId) {
 		}
 
 		UpdatePaletteUI();
-	});
+    });
+
+    function addButtons(index) {
+
+    }
 
 	// public
 	function changeColorPickerIndex(index) {
 		colorPickerIndex = index;
 		var color = getPal(GetSelectedId())[ index ];
 		// console.log(color);
-		colorPicker.setColor( color[0], color[1], color[2] );
+        colorPicker.setColor(color[0], color[1], color[2]);
+
+        //only the the intial colors have this
+        for (i = 0; i < 3; i++) {
+            var children = document.getElementById("colorLabel_" + i).children;
+            if (i != colorPickerIndex) {
+                console.log("no text");
+                children[1].style.display = 'none';
+            } else {
+                console.log("see text");
+                children[1].style.display = 'inline';
+            }
+        }
 	}
 	this.changeColorPickerIndex = changeColorPickerIndex;
 
@@ -53,27 +69,30 @@ function PaletteTool(colorPicker,labelIds,nameFieldId) {
 
 		var rgbColorStr = "rgb(" + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ")";
 		var hsvColor = RGBtoHSV( rgbColor );
-		document.getElementById( labelIds[ index ] ).style.background = rgbColorStr;
+        document.getElementById("colorLabel_" + index).style.background = rgbColorStr;
 
-		document.getElementById(labelIds[ index ])
+
+        document.getElementById("colorLabel_" + index)
 			.setAttribute("class", hsvColor.v < 0.5 ? "colorPaletteLabelDark" : "colorPaletteLabelLight");
 	}
-
+    
 	// public
 	function updateColorPickerUI() {
-		var color0 = getPal(GetSelectedId())[ 0 ];
-		var color1 = getPal(GetSelectedId())[ 1 ];
-		var color2 = getPal(GetSelectedId())[ 2 ];
+        var colors = getPal(GetSelectedId());
 
-		updateColorPickerLabel(0, color0[0], color0[1], color0[2] );
-		updateColorPickerLabel(1, color1[0], color1[1], color1[2] );
-		updateColorPickerLabel(2, color2[0], color2[1], color2[2] );
+        for (i = 0; i < colors.length; i++) {
+            var temp = getPal(GetSelectedId())[i];
+            colors[i] = temp;
+
+            updateColorPickerLabel(i, temp[0], temp[1], temp[2]);
+
+        }
 
 		changeColorPickerIndex( colorPickerIndex );
 	}
 	this.updateColorPickerUI = updateColorPickerUI;
 
-	events.Listen("color_picker_change", function(event) {
+    events.Listen("color_picker_change", function (event) {
 		getPal(GetSelectedId())[ colorPickerIndex ][ 0 ] = event.rgbColor.r;
 		getPal(GetSelectedId())[ colorPickerIndex ][ 1 ] = event.rgbColor.g;
 		getPal(GetSelectedId())[ colorPickerIndex ][ 2 ] = event.rgbColor.b;
@@ -117,7 +136,8 @@ function PaletteTool(colorPicker,labelIds,nameFieldId) {
 
 	this.AddNew = function() {
 		// create new palette and save the data
-		var id = nextPaletteId();
+        var id = nextPaletteId();
+        var lastId = curPaletteId;
 
 		palette[ id ] = {
 			name : null,
@@ -126,6 +146,11 @@ function PaletteTool(colorPicker,labelIds,nameFieldId) {
 			hslToRgb(Math.random(), 1.0, 0.5),
 			hslToRgb(Math.random(), 1.0, 0.5) ]
 		};
+        if (palette[id].colors.length != palette[lastId].colors.length) {
+            for (i = 2; i < palette[lastId].colors.length; i++) {
+                palette[id].colors[i] = hslToRgb(Math.random(), 1.0, Math.random());
+            }
+        }
 
 		curPaletteId = id;
 		UpdatePaletteUI();
@@ -175,6 +200,17 @@ function PaletteTool(colorPicker,labelIds,nameFieldId) {
 			events.Raise("palette_list_change");
 		}
 	}
+
+    this.AddColor = function () {
+
+        var id = curPaletteId;
+        var colors = palette[id].colors;
+        colors.push(hslToRgb(Math.random(), 1.0, Math.random()));
+        
+        UpdatePaletteUI();
+
+        events.Raise("palette_change");
+    }
 
 	function GetSelectedId() {
 		if (sortedPaletteIdList().length <= 0) {

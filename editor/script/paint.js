@@ -112,7 +112,7 @@ function PaintTool(canvas, roomTool) {
 
 	var paint_scale = 32;
     var curPaintColor;
-    var paintColorDummy = 0;
+    var paintColorDummy = 1;
 	var curPaintBrush = 0;
 	var isPainting = false;
 	this.isCurDrawingAnimated = false; // TODO eventually this can be internal
@@ -143,6 +143,11 @@ function PaintTool(canvas, roomTool) {
 	curPaintColor = document.getElementById("paintColor");
 	curPaintColor.addEventListener("input", changePaintColor);
 	curPaintColor.value = 1;
+
+    this.setPaintColor = function (index) {
+        curPaintColor.value = index;
+        paintColorDummy = index;
+    }
 
 	// TODO : 
 	function onMouseDown(e) {
@@ -249,7 +254,6 @@ function PaintTool(canvas, roomTool) {
         else { paintColorDummy = 0;}
         console.log(paintColorDummy);
 	}
-
 	this.updateCanvas = function() {
 		//background
 		ctx.fillStyle = "rgb("+getPal(curPal())[0][0]+","+getPal(curPal())[0][1]+","+getPal(curPal())[0][2]+")";

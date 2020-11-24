@@ -86,6 +86,21 @@ function nextObjectId(idList) {
 	return idInt.toString(36);
 }
 
+function prevPaletteId() {
+    return prevObjectId(sortedPaletteIdList());
+}
+
+function prevObjectId(idList) {
+    if (idList.length <= 0) {
+        return "0";
+    }
+
+    var lastId = idList[idList.length - 1];
+    var idInt = parseInt(lastId, 36);
+    idInt--;
+    return idInt.toString(36);
+}
+
 function sortedTileIdList() {
 	return sortedBase36IdList( tile );
 }
@@ -970,7 +985,7 @@ function start() {
 	// init color picker
 	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg', 'colorPickerHexText');
 	document.getElementById("colorPaletteOptionBackground").checked = true;
-	paletteTool = new PaletteTool(colorPicker,["colorPaletteLabelBackground", "colorPaletteLabelTile", "colorPaletteLabelSprite"],"paletteName");
+    paletteTool = new PaletteTool(colorPicker,"paletteName"); //,selectColor
 	events.Listen("palette_change", function(event) {
 		refreshGameData();
 	});
@@ -1848,6 +1863,10 @@ function deletePalette() {
 	paletteTool.DeleteSelected();
 }
 
+function addColor() {
+    paletteTool.AddColor();
+}
+
 function roomPaletteChange(event) {
 	var palId = event.target.value;
 	room[curRoom].pal = palId;
@@ -2057,6 +2076,9 @@ function renderAnimationPreview(id) {
 	renderAnimationThumbnail( "animationThumbnailPreview", id );
 	renderAnimationThumbnail( "animationThumbnailFrame1", id, 0 );
 	renderAnimationThumbnail( "animationThumbnailFrame2", id, 1 );
+}
+function selectColor(index) {
+    paintTool.setPaintColor(index);
 }
 
 function selectPaint() {
