@@ -269,7 +269,18 @@ function PaintTool(canvas, roomTool) {
 		}
 		else if (self.drawing.type == TileType.Item) {
 			remap = item[self.drawing.id].col;
-		}
+        }
+
+        var remappedColor = [0,0,0]
+
+        if (typeof (remap) == 'string') {
+            var temp = hexToRgb(remap);
+            remappedColor[0] = temp.r;
+            remappedColor[1] = temp.g;
+            remappedColor[2] = temp.b;
+        } else {
+            remappedColor = getPal(curPal())[remap];
+        }
 
 		//draw pixels
 		for (var x = 0; x < 8; x++) {
@@ -281,7 +292,7 @@ function PaintTool(canvas, roomTool) {
 						ctx.fillStyle = "rgb(" + getPal(curPal())[curDrawingAltFrameData()[y][x]][0] + "," + getPal(curPal())[curDrawingAltFrameData()[y][x]][1] + "," + getPal(curPal())[curDrawingAltFrameData()[y][x]][2] + ")";
 					}
 					else {
-						ctx.fillStyle = "rgb(" + getPal(curPal())[remap][0] + "," + getPal(curPal())[remap][1] + "," + getPal(curPal())[remap][2] + ")";
+                        ctx.fillStyle = "rgb(" + remappedColor[0] + "," + remappedColor[1] + "," + remappedColor[2] + ")";
 					}
 					ctx.fillRect(x * paint_scale, y * paint_scale, 1 * paint_scale, 1 * paint_scale);
 					ctx.globalAlpha = 1;
@@ -291,8 +302,8 @@ function PaintTool(canvas, roomTool) {
 					if (curDrawingData()[y][x] != 1) {
 						ctx.fillStyle = "rgb(" + getPal(curPal())[curDrawingData()[y][x]][0] + "," + getPal(curPal())[curDrawingData()[y][x]][1] + "," + getPal(curPal())[curDrawingData()[y][x]][2] + ")";
 					}
-					else {
-						ctx.fillStyle = "rgb(" + getPal(curPal())[remap][0] + "," + getPal(curPal())[remap][1] + "," + getPal(curPal())[remap][2] + ")";
+                    else {
+                        ctx.fillStyle = "rgb(" + remappedColor[0] + "," + remappedColor[1] + "," + remappedColor[2] + ")";
 					}
 					ctx.fillRect(x*paint_scale,y*paint_scale,1*paint_scale,1*paint_scale);
 				}

@@ -1645,7 +1645,10 @@ function parseTile(lines, i) {
 	var isWall = null; // null indicates it can vary from room to room (original version)
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
-			colorIndex = parseInt( getId(lines[i]) );
+            colorIndex = parseInt(getId(lines[i]));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		else if (getType(lines[i]) === "NAME") {
 			/* NAME */
@@ -1705,7 +1708,10 @@ function parseSprite(lines, i) {
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
 			/* COLOR OFFSET INDEX */
-			colorIndex = parseInt( getId(lines[i]) );
+            colorIndex = parseInt(getId(lines[i]));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		else if (getType(lines[i]) === "POS") {
 			/* STARTING POSITION */
@@ -1778,7 +1784,10 @@ function parseItem(lines, i) {
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
 			/* COLOR OFFSET INDEX */
-			colorIndex = parseInt( getArg( lines[i], 1 ) );
+            colorIndex = parseInt(getArg(lines[i], 1));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		// else if (getType(lines[i]) === "POS") {
 		// 	/* STARTING POSITION */
