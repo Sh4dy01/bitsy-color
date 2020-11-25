@@ -85,8 +85,14 @@ function imageDataFromImageSource(imageSource, pal, col) {
 
 	var img = context.createImageData(tilesize*scale,tilesize*scale);
 
-	var backgroundColor = getPaletteColor(pal,0);
-	var foregroundColor = getPaletteColor(pal,col);
+    var foregroundColor = getPaletteColor(pal, col);
+    //take 2 on grabbing an array of the palette
+
+    if (palettes[pal] === undefined) {
+        pal = "default";
+    }
+    var palette = palettes[pal];
+    var colors = palettes[pal].colors;
 
 	for (var y = 0; y < tilesize; y++) {
 		for (var x = 0; x < tilesize; x++) {
@@ -94,25 +100,20 @@ function imageDataFromImageSource(imageSource, pal, col) {
 			for (var sy = 0; sy < scale; sy++) {
 				for (var sx = 0; sx < scale; sx++) {
 					var pxl = (((y * scale) + sy) * tilesize * scale * 4) + (((x*scale) + sx) * 4);
-					if ( px === 1 ) {
-						img.data[pxl + 0] = foregroundColor.r;
-						img.data[pxl + 1] = foregroundColor.g;
-						img.data[pxl + 2] = foregroundColor.b;
-						img.data[pxl + 3] = 255;
-					}
-					else { //ch === 0
-						img.data[pxl + 0] = backgroundColor.r;
-						img.data[pxl + 1] = backgroundColor.g;
-						img.data[pxl + 2] = backgroundColor.b;
-						img.data[pxl + 3] = 255;
-						if (px != 0) {
-							var testColor = getPaletteColor(pal, px); //feels kinda hacky we'd much prefer to get it pull it's color from an array with the pallete's colors popped in... but we can't get that to work
-							img.data[pxl + 0] = testColor.r;
-							img.data[pxl + 1] = testColor.g;
-							img.data[pxl + 2] = testColor.b;
-							img.data[pxl + 3] = 255;
-						}
-					}
+                    if (px === 1) {
+                        img.data[pxl + 0] = foregroundColor.r;
+                        img.data[pxl + 1] = foregroundColor.g;
+                        img.data[pxl + 2] = foregroundColor.b;
+                        img.data[pxl + 3] = 255;
+                    }
+                    else { //ch === 0
+                        if (px == undefined) { px = 0; }
+                        img.data[pxl + 0] = colors[px][0];//r
+                        img.data[pxl + 1] = colors[px][1];//g
+                        img.data[pxl + 2] = colors[px][2];//b
+                        img.data[pxl + 3] = 255;//a
+
+                    }
 				}
 			}
 		}

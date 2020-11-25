@@ -57,13 +57,6 @@ function unescapeSpecialCharacters(str) {
 
 this.importGame = function( html ) {
     console.log("IMPORT!!!");
-    //the posibbly worst debugging idea we've had
-    //console.log(html);
-    var debugArray = []
-    for (var i = 0; i < html.length; i++) {
-        debugArray[i] = html[i];
-    }
-    console.log(debugArray)
 
 	// IMPORT : old style
 	// find start of game data
