@@ -2797,10 +2797,10 @@ function importGameFromFile(e) {
 
 	reader.onloadend = function() {
 		var fileText = reader.result;
-		gameDataStr = exporter.importGame( fileText );
+        gameDataStr = exporter.importGame(fileText);
 
 		// change game data & reload everything
-		document.getElementById("game_data").value = gameDataStr;
+        document.getElementById("game_data").value = gameDataStr;
 		on_game_data_change();
 
 		paintExplorer.Refresh(drawing.type);

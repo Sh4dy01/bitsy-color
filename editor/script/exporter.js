@@ -56,7 +56,14 @@ function unescapeSpecialCharacters(str) {
 }
 
 this.importGame = function( html ) {
-	console.log("IMPORT!!!");
+    console.log("IMPORT!!!");
+    //the posibbly worst debugging idea we've had
+    //console.log(html);
+    var debugArray = []
+    for (var i = 0; i < html.length; i++) {
+        debugArray[i] = html[i];
+    }
+    console.log(debugArray)
 
 	// IMPORT : old style
 	// find start of game data
@@ -93,11 +100,14 @@ this.importGame = function( html ) {
 	// so we have to check for two slightly different versions of the script start line :(
 	i = html.indexOf( scriptStart );
 	if (i === -1) {
-		scriptStart = '<script type="text/bitsyGameData" id="exportedGameData">\n';
-		i = html.indexOf( scriptStart );
-	}
+        scriptStart = '<script type="text/bitsyGameData" id="exportedGameData">\n';
+        i = html.indexOf(scriptStart);
+        console.log(html.indexOf('<head>'))
+    }
+    //bitys says no to \n
 
 	if(i > -1) {
+
 		i = i + scriptStart.length;
 		var gameStr = "";
 		var lineStr = "";
