@@ -1702,7 +1702,7 @@ function parseSprite(lines, i) {
 	}
 
 	//other properties
-	var colorIndex = 2; //default palette color index is 2
+	var colorIndex = 1; //default palette color index is 1
 	var dialogId = null;
 	var startingInventory = {};
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
@@ -1779,7 +1779,7 @@ function parseItem(lines, i) {
 	}
 
 	//other properties
-	var colorIndex = 2; //default palette color index is 2
+	var colorIndex = 1; //default palette color index is 1
 	var dialogId = null;
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
