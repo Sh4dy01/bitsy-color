@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+﻿<!DOCTYPE HTML>
 <html>
 	<head>
 		<meta charset="UTF-8">
@@ -680,6 +680,10 @@
 								<span class="bitsy_icon">item</span>
 								<span class="localize inventory_tool_name">inventory</span>
 							</button>
+                            <span id="drawingPaintCol" title="paint with this color" class="controlSpan">
+                                <span class="localize brush_color">brush color</span>
+                                <input type="text" id="paintColor" size="3"></input>
+                            </span>
 						</div>
 					</div>
 
@@ -827,25 +831,19 @@
 						</button>
 					</div>
 
-					<form id="colorPaletteForm">
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionBackground" onclick="changeColorPickerIndex(0);" checked>
-						<label id="colorPaletteLabelBackground" for="colorPaletteOptionBackground" title="pick background color">
-							<span class="bitsy_icon icon_space_right">room</span>
-							<span class="localize palette_background">background color</span>
-						</label>
-
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionTile" onclick="changeColorPickerIndex(1);">
-						<label id="colorPaletteLabelTile" for="colorPaletteOptionTile" title="pick tile color">
-							<span class="bitsy_icon icon_space_right">tile</span>
-							<span class="localize palette_tile">tile color</span>
-						</label>
-
-						<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionSprite" onclick="changeColorPickerIndex(2);">
-						<label id="colorPaletteLabelSprite" for="colorPaletteOptionSprite" title="pick sprite / avatar / item color">
-							<span class="bitsy_icon icon_space_right">sprite</span>
-							<span class="localize palette_sprite">sprite color</span>
-						</label>
-					</form>
+                    <div id="colorPaletteViewport">
+                        <div id="colorPaletteContent">
+                            <form id="colorPaletteForm">
+                                <span id="colorPaletteFormInner"></span>
+                                <div id="colorPaletteAdd" style="display:inline-block;">
+                                    <button title="add color" onclick="addColor(); return false;">
+                                        <span class="bitsy_icon">add</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
 
 					<div id="colorPicker" title="color picker">
 						<canvas id="colorPickerWheel"></canvas>
@@ -855,7 +853,7 @@
 						</div>
 						<input id="colorPickerHexText" class="textInputField" title="color picker hex code" type="text" />
 					</div>
-				</div>
+                </div>
 
 				<div id="dialogPanel" class="panel color3">
 					<div class="bar color3">

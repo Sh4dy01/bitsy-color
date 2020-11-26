@@ -86,6 +86,21 @@ function nextObjectId(idList) {
 	return idInt.toString(36);
 }
 
+function prevPaletteId() {
+    return prevObjectId(sortedPaletteIdList());
+}
+
+function prevObjectId(idList) {
+    if (idList.length <= 0) {
+        return "0";
+    }
+
+    var lastId = idList[idList.length - 1];
+    var idInt = parseInt(lastId, 36);
+    idInt--;
+    return idInt.toString(36);
+}
+
 function sortedTileIdList() {
 	return sortedBase36IdList( tile );
 }
@@ -719,7 +734,8 @@ function refreshGameData() {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled form editor data)
 	}
 
-	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+    flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+    flags.DRAW_FORMAT = 1;
 
 	// var gameData = serializeWorld();
 
@@ -1037,8 +1053,8 @@ function start() {
 
 	// init color picker
 	colorPicker = new ColorPicker('colorPickerWheel', 'colorPickerSelect', 'colorPickerSliderThumb', 'colorPickerSliderBg', 'colorPickerHexText');
-	document.getElementById("colorPaletteOptionBackground").checked = true;
-	paletteTool = new PaletteTool(colorPicker,["colorPaletteLabelBackground", "colorPaletteLabelTile", "colorPaletteLabelSprite"],"paletteName");
+    paletteTool = new PaletteTool(colorPicker, selectColor,"paletteName"); //,selectColor
+    
 	events.Listen("palette_change", function(event) {
 		refreshGameData();
 	});
@@ -1916,6 +1932,10 @@ function deletePalette() {
 	paletteTool.DeleteSelected();
 }
 
+function addColor() {
+    paletteTool.AddColor();
+}
+
 function roomPaletteChange(event) {
 	var palId = event.target.value;
 	room[curRoom].pal = palId;
@@ -2126,8 +2146,21 @@ function renderAnimationPreview(id) {
 	renderAnimationThumbnail( "animationThumbnailFrame1", id, 0 );
 	renderAnimationThumbnail( "animationThumbnailFrame2", id, 1 );
 }
+function selectColor() {
+    console.log(this);
+    var colors = getPal(paletteTool.GetSelectedId());
+    var lastIndex = colors.length - 1;
+    if (this.value === undefined || this.value === null || this.value > lastIndex) {
+        paintTool.setPaintColor(0);
+        paletteTool.changeColorPickerIndex(0);
+    } else {
+        paintTool.setPaintColor(this.value);
+        paletteTool.changeColorPickerIndex(this.value);
+    }
+}
 
 function selectPaint() {
+    console.log(this);
 	if (drawing.id === this.value) {
 		showPanel("paintPanel", "paintExplorerPanel");
 	}
@@ -2833,10 +2866,10 @@ function importGameFromFile(e) {
 
 	reader.onloadend = function() {
 		var fileText = reader.result;
-		gameDataStr = exporter.importGame( fileText );
+        gameDataStr = exporter.importGame(fileText);
 
 		// change game data & reload everything
-		document.getElementById("game_data").value = gameDataStr;
+        document.getElementById("game_data").value = gameDataStr;
 		on_game_data_change();
 
 		paintExplorer.Refresh(drawing.type);

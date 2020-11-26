@@ -75,7 +75,8 @@ function getEngineVersion() {
 var flags;
 function resetFlags() {
 	flags = {
-		ROOM_FORMAT : 0 // 0 = non-comma separated, 1 = comma separated
+        ROOM_FORMAT: 0, // 0 = non-comma separated, 1 = comma separated
+		DRAW_FORMAT: 0 // 0 = non-comma separated, 1 = comma separated
 	};
 }
 resetFlags(); //init flags on load script
@@ -891,7 +892,6 @@ function initRoom(roomId) {
 	for (var i = 0; i < room[roomId].exits.length; i++) {
 		room[roomId].exits[i].property = { locked:false };
 	}
-
 	// init ending properties
 	for (var i = 0; i < room[roomId].endings.length; i++) {
 		room[roomId].endings[i].property = { locked:false };
@@ -1074,7 +1074,7 @@ function parseWorld(file) {
 			i = parseItem(lines, i);
 		}
 		else if (getType(curLine) === "DRW") {
-			i = parseDrawing(lines, i);
+            i = parseDrawing(lines, i); 
 		}
 		else if (getType(curLine) === "DLG") {
 			i = parseDialog(lines, i, compatibilityFlags);
@@ -1380,7 +1380,8 @@ function serializeDrawing(drwId) {
 		for (y in imageSource[f]) {
 			var rowStr = "";
 			for (x in imageSource[f][y]) {
-				rowStr += imageSource[f][y][x];
+                rowStr += imageSource[f][y][x];
+                if (x < imageSource[f][y].length - 1) rowStr += ","
 			}
 			drwStr += rowStr + "\n";
 		}
@@ -1468,7 +1469,7 @@ function parseRoom(lines, i, compatibilityFlags) {
 		var y = 0;
 		for (; i<end; i++) {
 			room[id].tilemap.push( [] );
-			var lineSep = lines[i].split(",");
+            var lineSep = lines[i].split(",");
 			for (x = 0; x<mapsize; x++) {
 				room[id].tilemap[y].push( lineSep[x] );
 			}
@@ -1644,7 +1645,10 @@ function parseTile(lines, i) {
 	var isWall = null; // null indicates it can vary from room to room (original version)
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
-			colorIndex = parseInt( getId(lines[i]) );
+            colorIndex = parseInt(getId(lines[i]));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		else if (getType(lines[i]) === "NAME") {
 			/* NAME */
@@ -1704,7 +1708,10 @@ function parseSprite(lines, i) {
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
 			/* COLOR OFFSET INDEX */
-			colorIndex = parseInt( getId(lines[i]) );
+            colorIndex = parseInt(getId(lines[i]));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		else if (getType(lines[i]) === "POS") {
 			/* STARTING POSITION */
@@ -1777,7 +1784,10 @@ function parseItem(lines, i) {
 	while (i < lines.length && lines[i].length > 0) { //look for empty line
 		if (getType(lines[i]) === "COL") {
 			/* COLOR OFFSET INDEX */
-			colorIndex = parseInt( getArg( lines[i], 1 ) );
+            colorIndex = parseInt(getArg(lines[i], 1));
+            if (isNaN(colorIndex)) {
+                colorIndex = getId(lines[i]);
+            }
 		}
 		// else if (getType(lines[i]) === "POS") {
 		// 	/* STARTING POSITION */
@@ -1851,18 +1861,35 @@ function parseDrawingCore(lines, i, drwId) {
     var framesParsed = [];
 
     // parse drawing data
-    frameListStrings.forEach(function (frame, frameIndex) {
-        framesParsed[frameIndex] = [];
-        for (y = 0; y < drawingSize; y++) {
-            var line = frame[y] || '';
-            framesParsed[frameIndex][y] = [];
-            for (x = 0; x < drawingSize; x++) {
-                var parsedPixel = parseInt(line.charAt(x));
-                parsedPixel = isNaN(parsedPixel)? 0: parsedPixel;
-                framesParsed[frameIndex][y].push(parsedPixel);
+    if (flags.DRAW_FORMAT == 1) {
+        frameListStrings.forEach(function (frame, frameIndex) {
+            framesParsed[frameIndex] = [];
+            for (y = 0; y < drawingSize; y++) {
+                var line = frame[y] || '';
+                framesParsed[frameIndex][y] = [];
+                for (x = 0; x < drawingSize; x++) {
+                    var parsedPixel = parseInt(line.charAt(x));
+                    parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
+                    framesParsed[frameIndex][y].push(parsedPixel);
+                }
             }
-        }
-    });
+        });
+    } else {
+        frameListStrings.forEach(function (frame, frameIndex) {
+            framesParsed[frameIndex] = [];
+            for (y = 0; y < drawingSize; y++) {
+                var line = frame[y] || '';
+                var lineSep = line.split(",");
+                framesParsed[frameIndex][y] = [];
+                for (x = 0; x < drawingSize; x++) {
+                    var parsedPixel = parseInt(lineSep[x]);
+                    parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
+                    framesParsed[frameIndex][y].push(parsedPixel);
+                }
+            }
+        });
+    }
+
 
     renderer.SetImageSource(drwId, framesParsed);
 
