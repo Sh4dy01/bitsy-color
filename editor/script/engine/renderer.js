@@ -88,8 +88,8 @@ function imageDataFromImageSource(imageSource, pal, col) {
 	var img = context.createImageData(tilesize*scale,tilesize*scale);
 
     var foregroundColor = { r:255, g:255, b:255};
-    if (col <= 255) { // this is just temporary so we don't break anything before we redo all references to this, okay thinking it might be perminante anywas for compatibility
-        getPaletteColor(pal, col);
+    if (col <= 255) { // this is just temporary so we don't break anything before we redo all references to this, okay thinking it might be perminant anywas for compatibility
+        foregroundColor = getPaletteColor(pal, col);
     } else if (typeof col == 'string' && col != 'NaN') {
         foregroundColor = hexToRgb(col);
     }
@@ -99,7 +99,6 @@ function imageDataFromImageSource(imageSource, pal, col) {
     if (palettes[pal] === undefined) {
         pal = "default";
     }
-    var palette = palettes[pal];
     var colors = palettes[pal].colors;
 
 	for (var y = 0; y < tilesize; y++) {

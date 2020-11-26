@@ -1845,7 +1845,7 @@ function parseDrawingCore(lines, i, drwId) {
     var frameListStrings = [];
     frameListStrings.push([]);
 
-    while (!isNaN(parseInt(lines[i].charAt(0))) || lines[i].charAt(0) === ">") {
+    while (!isNaN(parseInt(lines[i].charAt(0))) || lines[i].charAt(0) === ">" || lines[i].charAt(0) === ",") {
         if ( lines[i].charAt(0) === ">") {
             frameListStrings.push([]);
             frameIndex++;
@@ -1866,9 +1866,10 @@ function parseDrawingCore(lines, i, drwId) {
             framesParsed[frameIndex] = [];
             for (y = 0; y < drawingSize; y++) {
                 var line = frame[y] || '';
+                var lineSep = line.split(",");
                 framesParsed[frameIndex][y] = [];
                 for (x = 0; x < drawingSize; x++) {
-                    var parsedPixel = parseInt(line.charAt(x));
+                    var parsedPixel = parseInt(lineSep[x]);
                     parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
                     framesParsed[frameIndex][y].push(parsedPixel);
                 }
@@ -1882,7 +1883,7 @@ function parseDrawingCore(lines, i, drwId) {
                 var lineSep = line.split(",");
                 framesParsed[frameIndex][y] = [];
                 for (x = 0; x < drawingSize; x++) {
-                    var parsedPixel = parseInt(lineSep[x]);
+                    var parsedPixel = parseInt(line.charAt(x));
                     parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
                     framesParsed[frameIndex][y].push(parsedPixel);
                 }
