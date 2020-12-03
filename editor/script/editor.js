@@ -883,7 +883,7 @@ var defaultPanelPrefs = {
 function getPanelPrefs() {
 	// (TODO: weird that engine version and editor version are the same??)
 	var useDefaultPrefs = ( localStorage.engine_version == null ) ||
-							( localStorage.panel_prefs == null ) ||
+                            (localStorage.bitsy_color_panel_prefs == null ) ||
 							( JSON.parse(localStorage.engine_version).major < 6 ) ||
 							( JSON.parse(localStorage.engine_version).minor < 0 );
 
