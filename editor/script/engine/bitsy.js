@@ -1298,7 +1298,7 @@ function serializeWorld(skipFonts) {
 			/* WALL */
 			worldStr += "WAL " + tile[id].isWall + "\n";
 		}
-		if (tile[id].col != null && tile[id].col != undefined && tile[id].col != 1) {
+		if (tile[id].col != null && tile[id].col != undefined) {
 			/* COLOR OVERRIDE */
 			worldStr += "COL " + tile[id].col + "\n";
 		}
@@ -1324,7 +1324,7 @@ function serializeWorld(skipFonts) {
 				worldStr += "ITM " + itemId + " " + sprite[id].inventory[itemId] + "\n";
 			}
 		}
-		if (sprite[id].col != null && sprite[id].col != undefined && sprite[id].col != 2) {
+		if (sprite[id].col != null && sprite[id].col != undefined) {
 			/* COLOR OVERRIDE */
 			worldStr += "COL " + sprite[id].col + "\n";
 		}
@@ -1341,7 +1341,7 @@ function serializeWorld(skipFonts) {
 		if (item[id].dlg != null) {
 			worldStr += "DLG " + item[id].dlg + "\n";
 		}
-		if (item[id].col != null && item[id].col != undefined && item[id].col != 2) {
+		if (item[id].col != null && item[id].col != undefined) {
 			/* COLOR OVERRIDE */
 			worldStr += "COL " + item[id].col + "\n";
 		}
