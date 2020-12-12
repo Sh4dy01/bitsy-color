@@ -261,7 +261,8 @@ function PaintTool(canvas, roomTool) {
         }
         else { paintColorDummy = 0;}
         console.log(paintColorDummy);
-	}
+    }
+
 	this.updateCanvas = function() {
 		//background
 		ctx.fillStyle = "rgb("+getPal(curPal())[0][0]+","+getPal(curPal())[0][1]+","+getPal(curPal())[0][2]+")";
@@ -331,7 +332,56 @@ function PaintTool(canvas, roomTool) {
 				ctx.fillRect(0*self.curPaintScale,y*self.curPaintScale,self.curTilesize*self.curPaintScale,1);
 			}
 		}
-	}
+    }
+
+    this.flipDrawing = function (direction) {
+        var curDrawingCopy = curDrawingData().map(function (x) { return x.slice() });
+        for (var x = 0; x < self.curTilesize; x++) {
+            for (var y = 0; y < self.curTilesize; y++) {
+                var ypos = self.curTilesize - y - 1;
+                var xpos = self.curTilesize - x - 1;
+                if (direction == 0) {
+                    curDrawingData()[y][x] = curDrawingCopy[ypos][x];
+                } else {
+                    curDrawingData()[y][x] = curDrawingCopy[y][xpos];
+                }
+            }
+        }
+        self.updateCanvas();
+    }
+
+    this.nudgeDrawing = function (direction) {
+        var curDrawingCopy = curDrawingData().map(function(x) {return x.slice() });
+        var addx = 0;
+        var addy = 0;
+        switch (direction) {
+            case 0://left
+                addx = 1;
+                break;
+            case 1://up
+                addy = -1;
+                break;
+            case 2://right
+                addx = -1;
+                break;
+            case 3://down
+                addy = 1;
+                break;
+        }
+        var maxTile = self.curTilesize - 1;
+        for (var x = 0; x < self.curTilesize; x++) {
+            for (var y = 0; y < self.curTilesize; y++) {
+                var ypos = y + addy;
+                var xpos = x + addx;
+                if (ypos < 0) { ypos = ypos + self.curTilesize; } else if (ypos > maxTile) { ypos = ypos - self.curTilesize; }
+                if (xpos < 0) { xpos = xpos + self.curTilesize; } else if (xpos > maxTile) { xpos = xpos - self.curTilesize; }
+                curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
+            }
+        }
+        console.log(curDrawingCopy);
+        console.log(curDrawingData());
+        self.updateCanvas();
+    }
 
 	function curDrawingData() {
 		var frameIndex = (self.isCurDrawingAnimated ? self.curDrawingFrameIndex : 0);

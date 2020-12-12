@@ -1590,6 +1590,14 @@ function duplicateDrawing() {
     paintTool.duplicateDrawing();
 }
 
+function flipDrawing(dir) {
+    paintTool.flipDrawing(dir);
+}
+
+function nudgeDrawing(dir) {
+    paintTool.nudgeDrawing(dir);
+}
+
 function removeAllItems( id ) {
 	function getFirstItemIndex(roomId, itemId) {
 		for(var i = 0; i < room[roomId].items.length; i++) {
@@ -1845,6 +1853,12 @@ function togglePaintGrid(e) {
 	paintTool.drawPaintGrid = e.target.checked;
 	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), paintTool.drawPaintGrid ? "visibility" : "visibility_off");
 	paintTool.updateCanvas();
+}
+
+function togglePaintGrid(e) {
+    paintTool.drawPaintGrid = e.target.checked;
+    iconUtils.LoadIcon(document.getElementById("paintGridIcon"), paintTool.drawPaintGrid ? "visibility" : "visibility_off");
+    paintTool.updateCanvas();
 }
 
 function toggleMapGrid(e) {
