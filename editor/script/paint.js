@@ -348,6 +348,9 @@ function PaintTool(canvas, roomTool) {
             }
         }
         self.updateCanvas();
+        updateDrawingData();
+        refreshGameData();
+        roomTool.drawEditMap();
     }
 
     this.rotateDrawing = function (direction) {
@@ -390,6 +393,9 @@ function PaintTool(canvas, roomTool) {
             }
         }
         self.updateCanvas();
+        updateDrawingData();
+        refreshGameData();
+        roomTool.drawEditMap();
     }
 
     this.mirrorDrawing = function (direction) {
@@ -440,6 +446,9 @@ function PaintTool(canvas, roomTool) {
                 break;
         }
         self.updateCanvas();
+        updateDrawingData();
+        refreshGameData();
+        roomTool.drawEditMap();
     }
 
 	function curDrawingData() {
