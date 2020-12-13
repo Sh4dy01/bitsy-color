@@ -1056,15 +1056,15 @@ function parseWorld(file) {
 			}
 
 			//skip blank lines & comments
-			i++;
-		}
-		else if (getType(curLine) == "PAL") {
+            i++;
+        }
+        else if (getType(curLine) == "PAL") {
 			i = parsePalette(lines, i);
 		}
-		else if (getType(curLine) === "ROOM" || getType(curLine) === "SET") { //SET for back compat
+       else if (getType(curLine) === "ROOM" || getType(curLine) === "SET") { //SET for back compat
 			i = parseRoom(lines, i, compatibilityFlags);
 		}
-		else if (getType(curLine) === "TIL") {
+       else if (getType(curLine) === "TIL") {
 			i = parseTile(lines, i);
 		}
 		else if (getType(curLine) === "SPR") {
@@ -1098,7 +1098,7 @@ function parseWorld(file) {
 		else if (getType(curLine) === "!") {
 			i = parseFlag(lines, i);
 		}
-		else {
+        else {
 			i++;
 		}
 	}
@@ -1116,7 +1116,7 @@ function parseWorld(file) {
 	}
 	else {
 		// uh oh there are no rooms I guess???
-		curRoom = null;
+        curRoom = null;
 	}
 
 	if (curRoom != null) {
@@ -1637,7 +1637,7 @@ function parseTile(lines, i) {
 	else {
 		// store tile source
 		drwId = "TIL_" + id;
-		i = parseDrawingCore( lines, i, drwId );
+        i = parseDrawingCore(lines, i, drwId);
 	}
 
 	//other properties

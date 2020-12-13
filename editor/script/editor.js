@@ -1598,6 +1598,14 @@ function nudgeDrawing(dir) {
     paintTool.nudgeDrawing(dir);
 }
 
+function rotateDrawing(dir) {
+    paintTool.rotateDrawing(dir);
+}
+
+function mirrorDrawing(dir) {
+    paintTool.mirrorDrawing(dir);
+}
+
 function removeAllItems( id ) {
 	function getFirstItemIndex(roomId, itemId) {
 		for(var i = 0; i < room[roomId].items.length; i++) {

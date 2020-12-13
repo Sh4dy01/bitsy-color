@@ -350,6 +350,17 @@ function PaintTool(canvas, roomTool) {
         self.updateCanvas();
     }
 
+    this.rotateDrawing = function (direction) {
+        var curDrawingCopy = curDrawingData().map(function (x) { return x.slice() });
+        for (var x = 0; x < self.curTilesize; x++) {
+            for (var y = 0; y < self.curTilesize; y++) {
+                curDrawingData()[y][x] = curDrawingCopy[x][y];
+            }
+        }
+        self.flipDrawing(direction);
+        self.updateCanvas();
+    }
+
     this.nudgeDrawing = function (direction) {
         var curDrawingCopy = curDrawingData().map(function(x) {return x.slice() });
         var addx = 0;
@@ -358,14 +369,14 @@ function PaintTool(canvas, roomTool) {
             case 0://left
                 addx = 1;
                 break;
-            case 1://up
-                addy = -1;
-                break;
-            case 2://right
+            case 1://right
                 addx = -1;
                 break;
-            case 3://down
+            case 2://up
                 addy = 1;
+                break;
+            case 3://down
+                addy = -1;
                 break;
         }
         var maxTile = self.curTilesize - 1;
@@ -378,8 +389,56 @@ function PaintTool(canvas, roomTool) {
                 curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
             }
         }
-        console.log(curDrawingCopy);
-        console.log(curDrawingData());
+        self.updateCanvas();
+    }
+
+    this.mirrorDrawing = function (direction) {
+        var curDrawingCopy = curDrawingData().map(function (x) { return x.slice() });
+        var maxTile = self.curTilesize - 1;
+        var mirror = maxTile / 2;
+        console.log(maxTile + " mirrorpoint: " + mirror);
+        switch (direction) {
+            case 0://left to right
+                for (var x = 0; x < self.curTilesize; x++) {
+                    for (var y = 0; y < self.curTilesize; y++) {
+                        var ypos = y;
+                        var xpos = x;
+                        if (xpos < mirror) { xpos = self.curTilesize - x - 1; }
+                        curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
+                    }
+                }
+                break;
+            case 1://right to left
+                for (var x = 0; x < self.curTilesize; x++) {
+                    for (var y = 0; y < self.curTilesize; y++) {
+                        var ypos = y;
+                        var xpos = x;
+                        if (xpos > mirror) { xpos = self.curTilesize - x - 1; }
+                        curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
+                    }
+                }
+                break;
+            case 2://up to down
+                for (var x = 0; x < self.curTilesize; x++) {
+                    for (var y = 0; y < self.curTilesize; y++) {
+                        var ypos = y;
+                        var xpos = x;
+                        if (ypos < mirror) { ypos = self.curTilesize - y - 1; }
+                        curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
+                    }
+                }
+                break;
+            case 3://down to up
+                for (var x = 0; x < self.curTilesize; x++) {
+                    for (var y = 0; y < self.curTilesize; y++) {
+                        var ypos = y;
+                        var xpos = x;
+                        if (ypos > mirror) { ypos = self.curTilesize - y - 1; }
+                        curDrawingData()[y][x] = curDrawingCopy[ypos][xpos];
+                    }
+                }
+                break;
+        }
         self.updateCanvas();
     }
 
