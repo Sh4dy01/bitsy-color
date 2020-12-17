@@ -3,7 +3,7 @@ Bitsy is a little editor for games, worlds, or stories.
 The goal is to make it easy to make games where you can walk around and talk to people and be somewhere!
 
 # Make a game with Bitsy Color
-You can use [the current Bitsy Color editor](aurysystem.itch.io/multicolorbisty) in your browser on itch.io! When you've finished your game, you can download it as an html file and share it. :)
+You can use [the current Bitsy Color editor](https://aurysystem.itch.io/multicolorbisty) in your browser on itch.io! When you've finished your game, you can download it as an html file and share it. :)
 You can clone or download this fork to mess with whatever we add to it if youw want.
 
 # Bug reports
