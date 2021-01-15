@@ -365,6 +365,19 @@ span.controlBox {
 	/*background: red;*/
 }
 
+#paintMirror {
+    white-space: initial;
+    padding: none;
+    margin: none;
+    /*background: red;*/
+}
+#paintTransform {
+    white-space: initial;
+    padding: none;
+    margin: none;
+    /*background: red;*/
+}
+
 #paintModeRadio {
 	display: flex;
 }
@@ -388,6 +401,11 @@ span.controlBox {
 #paintPanel .buttonGroup {
 	padding: 0px;
 	margin: 0px;
+}
+
+#paintPanel .noSpace {
+    margin-right: 0px;
+    margin-left: 0px;
 }
 
 #dialogCodeText {

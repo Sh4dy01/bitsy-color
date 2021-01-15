@@ -105,7 +105,8 @@ function PaletteTool(colorPicker,colorCallback,nameFieldId) { //,colorCallback
         } else {
             var text = document.createElement("span");
             text.innerText = index;
-            text.style.visibility = "hidden";
+            text.style.display = "none";
+            label.appendChild(iconUtils.CreateIcon("colors"));
             label.appendChild(text);
         }
 
