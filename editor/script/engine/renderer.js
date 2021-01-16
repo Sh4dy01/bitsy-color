@@ -107,7 +107,7 @@ function imageDataFromImageSource(imageSource, pal, col) {
 			for (var sy = 0; sy < scale; sy++) {
 				for (var sx = 0; sx < scale; sx++) {
 					var pxl = (((y * scale) + sy) * tilesize * scale * 4) + (((x*scale) + sx) * 4);
-                    if (px === 1) {
+                    if (px == 1) {
                         img.data[pxl + 0] = foregroundColor.r;
                         img.data[pxl + 1] = foregroundColor.g;
                         img.data[pxl + 2] = foregroundColor.b;

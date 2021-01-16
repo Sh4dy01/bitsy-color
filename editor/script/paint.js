@@ -153,6 +153,7 @@ function PaintTool(canvas, roomTool) {
 	curPaintColor.value = 1;
 
     this.setPaintColor = function (index) {
+        index = parseInt(index);
         curPaintColor.value = index;
         paintColorDummy = index;
     }
