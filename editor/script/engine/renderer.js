@@ -114,7 +114,7 @@ function imageDataFromImageSource(imageSource, pal, col) {
                         img.data[pxl + 3] = 255;
                     }
                     else { //ch === 0
-                        if (px == undefined || px >= colors.length || isNaN(parseInt(px))) {
+                        if (colors[px] == undefined || px >= colors.length || isNaN(parseInt(px))) {
                             console.log('passed index out of palette range: ' + px);
                             px = 0;
                         }

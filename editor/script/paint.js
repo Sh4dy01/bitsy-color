@@ -464,7 +464,9 @@ function PaintTool(canvas, roomTool) {
 	}
 
 	// TODO : rename?
-	function updateDrawingData() {
+    function updateDrawingData() {
+        //temporary find out when this extra index gets added hopefully
+        console.trace(curDrawingData());
 		self.drawing.updateImageSource();
 	}
 
