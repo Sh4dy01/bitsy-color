@@ -119,13 +119,12 @@ function PaintTool(canvas, roomTool) {
 	var isPainting = false;
 	this.isCurDrawingAnimated = false; // TODO eventually this can be internal
 	this.curDrawingFrameIndex = 0; // TODO eventually this can be internal
-	this.drawPaintGrid = true;
+	this.drawPaintGrid = (getPanelSetting("paintPanel", "grid") != false);
+	updatePaintGridCheck(this.drawPaintGrid);
 
 	console.log("NEW PAINT TOOL");
 	console.log(renderer);
 	this.drawing = new DrawingId( TileType.Avatar, "A" );
-
-	this.explorer = null; // TODO: hacky way to tie this to a paint explorer -- should use events instead
 
 	//paint canvas & context
 	canvas.width = defaultTilesize * defaultPaintScale;
@@ -212,9 +211,6 @@ function PaintTool(canvas, roomTool) {
 			refreshGameData();
 			roomTool.drawEditMap(); // TODO : events instead of direct coupling
 
-			if(self.explorer != null) {
-				self.explorer.RenderThumbnail( self.drawing.id );
-			}
 			if( self.isCurDrawingAnimated ) {
 				renderAnimationPreview( roomTool.drawing.id );
 			}
@@ -223,14 +219,18 @@ function PaintTool(canvas, roomTool) {
 
 	function onTouchStart(e) {
 		e.preventDefault();
-		var fakeEvent = { target:e.target, clientX:e.touches[0].clientX, clientY:e.touches[0].clientY };
-		onMouseDown(fakeEvent);
+		// update event to translate from touch-style to mouse-style structure
+		e.clientX = e.touches[0].clientX;
+		e.clientY = e.touches[0].clientY;
+		onMouseDown(e);
 	}
 
 	function onTouchMove(e) {
 		e.preventDefault();
-		var fakeEvent = { target:e.target, clientX:e.touches[0].clientX, clientY:e.touches[0].clientY };
-		onMouseMove(fakeEvent);
+		// update event to translate from touch-style to mouse-style structure
+		e.clientX = e.touches[0].clientX;
+		e.clientY = e.touches[0].clientY;
+		onMouseMove(e);
 	}
 
 	function onTouchEnd(e) {
@@ -552,12 +552,6 @@ function PaintTool(canvas, roomTool) {
 		else if( self.drawing.type == TileType.Item ) {
 			newItem(imageData);
 		}
-
-		// update paint explorer
-		self.explorer.AddThumbnail( self.drawing.id );
-		self.explorer.ChangeSelection( self.drawing.id );
-		document.getElementById("paintExplorerFilterInput").value = ""; // super hacky
-		self.explorer.Refresh( self.drawing.type, true /*doKeepOldThumbnails*/, document.getElementById("paintExplorerFilterInput").value /*filterString*/, true /*skipRenderStep*/ ); // this is a bit hacky feeling
     }
     
     this.duplicateDrawing = function() {
@@ -624,8 +618,6 @@ function PaintTool(canvas, roomTool) {
 		shouldDelete = confirm("Are you sure you want to delete this drawing?");
 
 		if ( shouldDelete ) {
-			self.explorer.DeleteThumbnail( self.drawing.id );
-
 			if (self.drawing.type == TileType.Tile) {
 				if ( Object.keys( tile ).length <= 1 ) { alert("You can't delete your last tile!"); return; }
 				delete tile[ self.drawing.id ];
@@ -639,11 +631,11 @@ function PaintTool(canvas, roomTool) {
 				if ( Object.keys( sprite ).length <= 2 ) { alert("You can't delete your last sprite!"); return; }
 
 				// todo: share with items
-				var dlgId = sprite[ self.drawing.id ].dlg == null ? self.drawing.id : sprite[ self.drawing.id ].dlg;
-				if( dlgId && dialog[ dlgId ] )
-					delete dialog[ dlgId ];
+				var dlgId = (sprite[self.drawing.id].dlg == null) ? self.drawing.id : sprite[self.drawing.id].dlg;
 
-				delete sprite[ self.drawing.id ];
+				delete sprite[self.drawing.id];
+
+				deleteUnreferencedDialog(dlgId);
 
 				refreshGameData();
 				// TODO RENDERER : refresh images
@@ -653,21 +645,19 @@ function PaintTool(canvas, roomTool) {
 			else if( self.drawing.type == TileType.Item ){
 				if ( Object.keys( item ).length <= 1 ) { alert("You can't delete your last item!"); return; }
 
-				var dlgId = item[ self.drawing.id ].dlg;
-				if( dlgId && dialog[ dlgId ] )
-					delete dialog[ dlgId ];
+				var dlgId = item[self.drawing.id].dlg;
 
-				delete item[ self.drawing.id ];
+				delete item[self.drawing.id];
 
-				removeAllItems( self.drawing.id );
+				deleteUnreferencedDialog(dlgId);
+
+				removeAllItems(self.drawing.id);
 				refreshGameData();
 				// TODO RENDERER : refresh images
 				roomTool.drawEditMap();
 				nextItem();
 				updateInventoryItemUI();
 			}
-
-			self.explorer.ChangeSelection( self.drawing.id );
 		}
 	}
 
