@@ -230,19 +230,21 @@ function createPaletteThumbnailRenderer() {
 
 	var onRender = function(pal, ctx, options) {
 		if (pal.id in palette) {
-			var hexPalette = getHexPalette(pal);
+            var hexPalette = getHexPalette(pal);
+            
 
 			ctx.fillStyle = "black";
-			ctx.fillRect(0, 0, 8 * scale, 8 * scale);
+            ctx.fillRect(0, 0, 8 * scale, 8 * scale);
 
-			ctx.fillStyle = "#" + hexPalette[0];
-			ctx.fillRect(1 * scale, 1 * scale, 6 * scale, 2 * scale);
-
-			ctx.fillStyle = "#" + hexPalette[1];
-			ctx.fillRect(1 * scale, 3 * scale, 6 * scale, 2 * scale);
-
-			ctx.fillStyle = "#" + hexPalette[2];
-			ctx.fillRect(1 * scale, 5 * scale, 6 * scale, 2 * scale);
+            let y = 1;
+            for (let i = 0; i < hexPalette.length; i++) {
+                ctx.fillStyle = "#" + hexPalette[i];
+                ctx.fillRect(((i % 6) + 1) * scale,y  * scale, 1 * scale, 1 * scale);
+                if ((i % 6) + 1 == 6) {
+                    y++;
+                    console.log(i+" "+y)
+                }
+            }
 		}
 
 		return [ctx.getImageData(0, 0, 8 * scale, 8 * scale).data];
