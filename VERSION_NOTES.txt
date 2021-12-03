@@ -1,3 +1,36 @@
+v7.10:
+- fix bug where HTML import was broken
+
+v.7.9:
+- improve exit tool layout (when all menus open)
+- more robust transitions between different length palettes
+- fix bug where thumbnails don't update on add / delete
+- fix bug where gif recorder is disabled in play mode
+- fix bug where updates are not installed
+	- had to turn off service worker temporarily
+- refactor to make porting easier
+
+v7.8:
+- play mode is more visually distinct
+- tools are disabled during play mode
+- show current room location during play mode
+- fix bug where find button in paint tool overflows
+- disable broken dialog preview button until I can fix it
+
+v7.7:
+- attempt to fix bug where extra frame is added to animation
+- fix bug where games can't be uploaded from HTML
+- url parameter for localization
+
+v7.6:
+- new layout for mobile devices
+
+v7.5:
+- add find tool shortcut to room, color, & dialog tools
+- bugfix: stop adding extra spaces between code and text
+- bugfix: thumbnails weren't generating after new game or import game
+- refactor to share drawing data code between editor and engine
+
 v7.4:
 - new find tool!
 - @seansleblanc: improved stability of persistent data storage

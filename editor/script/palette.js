@@ -118,8 +118,8 @@ function PaletteTool(colorPicker,colorCallback,nameFieldId) { //,colorCallback
 	// public
     function changeColorPickerIndex(index) {
 		colorPickerIndex = index;
-		var color = getPal(GetSelectedId())[ index ];
-		// console.log(color);
+        var color = getPal(GetSelectedId())[index];
+        // bitsyLog(color, "editor");
         colorPicker.setColor(color[0], color[1], color[2]);
 
         //only the the intial colors have this
@@ -171,7 +171,9 @@ function PaletteTool(colorPicker,colorCallback,nameFieldId) { //,colorCallback
 		getPal(GetSelectedId())[ colorPickerIndex ][ 0 ] = event.rgbColor.r;
 		getPal(GetSelectedId())[ colorPickerIndex ][ 1 ] = event.rgbColor.g;
 		getPal(GetSelectedId())[ colorPickerIndex ][ 2 ] = event.rgbColor.b;
-		renderer.SetPalettes(palette); // TODO: having to directly interface w/ the renderer is probably bad
+
+		// todo : test if this is broken now..
+		// renderer.SetPalettes(palette); // TODO: having to directly interface w/ the renderer is probably bad
 
 		updateColorPickerLabel(colorPickerIndex, event.rgbColor.r, event.rgbColor.g, event.rgbColor.b );
 

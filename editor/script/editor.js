@@ -1,34 +1,4 @@
-/*
-leftover todos:
-- add "direct edit" dropdowns for exits when in "move" mode
-- try another orientation on android fix
-- need to update the instructions panel
-- tool positioning in portrait mode
-- encapsulate adv dialog logic and inventory logic
-- encapsulate editor.js and bitsy.js
-	- create separate runtime game data and editor game data
-- should top bar go away on scroll down? (like some web apps do)
-- should tools toggles go in a side-bar?
-- saving and loading games in mobile
-	- downloading blobs is not supported
-	- thought: create "cartridges" out of GIFs (multiple frames means no limit on size even if dimensions are static)
-	- store game data text in one byte per RGB pixel (reserve last 85 values in each color value: 85 * 3 = 255)
-	- require implementation of lzw decompression and GIF decoding
-	- should I create a standalone "bitsy player" page too that takes in the carts?
-
-new notes from forum
-- new game+
-- process tags in "say" function
-*/
-
 /* MODES */
-var TileType = {
-	Tile : 0,
-	Sprite : 1,
-	Avatar : 2,
-	Item : 3
-};
-
 var EditMode = {
 	Edit : 0,
 	Play : 1
@@ -191,7 +161,7 @@ function safeParseHex(str) {
 function getContrastingColor(palId) {
 	if (!palId) palId = curPal();
 	var hsl = rgbToHsl( getPal(palId)[0][0], getPal(palId)[0][1], getPal(palId)[0][2] );
-	// console.log(hsl);
+	// bitsyLog(hsl, "editor");
 	var lightness = hsl[2];
 	if (lightness > 0.5) {
 		return "#000";
@@ -214,59 +184,28 @@ function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
 }
 
 /* MAKE DRAWING OBJECTS */
-function makeTile(id,imageData) {
-	var drwId = "TIL_" + id;
-	tile[id] = {
-		id : id,
-		drw : drwId,
-		col : 1,
-		animation : { //todo
-			isAnimated : (!imageData) ? false : (imageData.length>1),
-			frameIndex : 0,
-			frameCount : (!imageData) ? 2 : (imageData.length),
-		},
-		name : null
-	};
-	makeDrawing(drwId,imageData);
+function makeTile(id, imageData) {
+	var tileData = createDrawingData("TIL", id);
+	tileData.frameCount = (!imageData) ? 1 : (imageData.length);
+	tileData.isAnimated = tileData.frameCount > 1;
+	tile[id] = tileData;
+	makeDrawing(tileData.drw, imageData);
 }
 
-function makeSprite(id,imageData) {
-	var drwId = "SPR_" + id;
-	sprite[id] = { //todo create default sprite creation method
-		id : id,
-		drw : drwId,
-		col : 2,
-		room : null,
-		x : -1,
-		y : -1,
-		animation : { //todo
-			isAnimated : (!imageData) ? false : (imageData.length>1), // more duplication :(
-			frameIndex : 0,
-			frameCount : (!imageData) ? 2 : (imageData.length),
-		},
-		dlg : null,
-		name : null
-	};
-	makeDrawing(drwId,imageData);
+function makeSprite(id, imageData) {
+	var spriteData = createDrawingData("SPR", id);
+	spriteData.frameCount = (!imageData) ? 1 : (imageData.length);
+	spriteData.isAnimated = spriteData.frameCount > 1;
+	sprite[id] = spriteData;
+	makeDrawing(spriteData.drw, imageData);
 }
 
-function makeItem(id,imageData) { // NOTE : same as tile right now? make more like sprite?
-	// console.log(id);
-	var drwId = "ITM_" + id;
-	// console.log(drwId);
-	item[id] = {
-		id : id,
-		drw : drwId,
-		col : 2, // TODO color not column (bad name)
-		animation : { //todo
-			isAnimated : (!imageData) ? false : (imageData.length>1), // more duplication :(
-			frameIndex : 0,
-			frameCount : (!imageData) ? 2 : (imageData.length),
-		},
-		dlg : null,
-		name : null
-	};
-	makeDrawing(drwId,imageData);
+function makeItem(id, imageData) {
+	var itemData = createDrawingData("ITM", id);
+	itemData.frameCount = (!imageData) ? 1 : (imageData.length);
+	itemData.isAnimated = itemData.frameCount > 1;
+	item[id] = itemData;
+	makeDrawing(itemData.drw, imageData);
 }
 
 /* CUSTOMIZABLE DRAWING SIZE */
@@ -294,7 +233,7 @@ function getNewDrawingSize () {
 	return validateNewDrawingSize(dialog['DRAWINGSIZE'] && dialog['DRAWINGSIZE'].src);
 }
 
-function makeDrawing(id,imageData) {
+function makeDrawing(id, imageData) {
 	var newSize = getNewDrawingSize();
 	if (!imageData) {
 		// initialize with nested array for the first frame
@@ -306,9 +245,7 @@ function makeDrawing(id,imageData) {
 				}
 		}
 	}
-	// TODO RENDERER : stop using global renderer
-	renderer.SetImageSource(id,imageData);
-	// TODO RENDERER : re-render images?
+    renderer.SetDrawingSource(id, imageData);
 }
 
 /* DRAWING SIZE UI */
@@ -373,17 +310,17 @@ function mobileOffsetCorrection(off,e,innerSize) {
 		off.y -= (bounds.height - bounds.width) / 2;
 	}
 
-	// console.log(off);
+	// bitsyLog(off, "editor");
 
 	// convert container size to internal canvas size
 	var containerRatio = innerSize / Math.min( bounds.width, bounds.height );
 
-	// console.log(containerRatio);
+	// bitsyLog(containerRatio, "editor");
 
 	off.x *= containerRatio;
 	off.y *= containerRatio;
 
-	// console.log(off);
+	// bitsyLog(off, "editor");
 
 	return off;
 }
@@ -479,7 +416,7 @@ function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rena
 		(insertNextToId != undefined && insertNextToId != null);
 
 	if (isHiddenOrShouldMove && showIfHidden) {
-		console.log("insert next to : " + insertNextToId);
+		bitsyLog("insert next to : " + insertNextToId, "editor");
 		showPanel("dialogPanel", insertNextToId);
 	}
 
@@ -548,7 +485,7 @@ function prevDialog() {
 		}
 	}
 
-	console.log("PREV DIALOG " + id);
+	bitsyLog("PREV DIALOG " + id, "editor");
 
 	openDialogTool(id);
 
@@ -633,7 +570,7 @@ function reloadDialogUI() {
 	var dialogContent = document.getElementById("dialog");
 	dialogContent.innerHTML = "";
 
-	var obj = paintTool.drawing.getEngineObject();
+	var obj = drawing;
 
 	// clean up previous widget
 	if (paintDialogWidget) {
@@ -656,7 +593,7 @@ function reloadDialogUI() {
 				refreshGameData();
 			},
 			GetDefaultName: function() {
-				var desc = paintTool.drawing.getNameOrDescription();
+				var desc = getDrawingNameOrDescription(drawing);
 				return CreateDefaultName(desc + " dialog", dialog, true); // todo : localize
 			}, // todo : localize
 		});
@@ -669,19 +606,19 @@ function reloadDialogUI() {
 
 // hacky - assumes global paintTool object
 function getCurDialogId() {
-	return paintTool.drawing.getDialogId();
+	return getDrawingDialogId(drawing);
 }
 
 function setDefaultGameState() {
 	var defaultData = Resources["defaultGameData.bitsy"];
-	// console.log("DEFAULT DATA \n" + defaultData);
+	// bitsyLog("DEFAULT DATA \n" + defaultData, "editor");
 	document.getElementById("game_data").value = defaultData;
 	Store.set('game_data', document.getElementById("game_data").value); // save game
 	clearGameData();
 	parseWorld(document.getElementById("game_data").value); // load game
 
-	// TODO RENDERER : refresh images
-	// TODO -- more setup???
+	// refresh images
+	renderer.ClearCache();
 }
 
 function newGameDialog() {
@@ -713,7 +650,9 @@ function resetGameData() {
 
 	refreshGameData();
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
+
 	updateExitOptionsFromGameData();
 	updateRoomName();
 	updateInventoryUI();
@@ -729,6 +668,11 @@ function resetGameData() {
 	roomTool.drawEditMap();
 
 	events.Raise("game_data_change"); // TODO -- does this need to have a specific reset event or flag?
+
+	// reset find tool (a bit heavy handed?)
+	findTool = new FindTool({
+		mainElement : document.getElementById("findPanelMain"),
+	});
 }
 
 function refreshGameData() {
@@ -750,6 +694,7 @@ function refreshGameData() {
 
 	Store.set("game_data", gameDataNoFonts);
 
+	// todo : test if re-enabling this going to mess up HTML imports?
 	events.Raise("game_data_refresh");
 }
 
@@ -773,7 +718,7 @@ var roomTool;
 var paintTool;
 
 /* CUR DRAWING */
-var drawing = new DrawingId(TileType.Avatar,"A");
+var drawing;
 
 var tileIndex = 0;
 var spriteIndex = 0;
@@ -810,7 +755,7 @@ var defaultFonts = [
 fontManager = new FontManager(defaultFonts); // replaces font manager in the engine with one containing all fonts loaded in the editor
 
 function detectBrowserFeatures() {
-	console.log("BROWSER FEATURES");
+	bitsyLog("BROWSER FEATURES", "editor");
 	//test feature support
 	try {
 		var input = document.createElement("input");
@@ -818,15 +763,15 @@ function detectBrowserFeatures() {
 		document.body.appendChild(input);
 
 		if (input.type === "color") {
-			console.log("color picker supported!");
+			bitsyLog("color picker supported!", "editor");
 			browserFeatures.colorPicker = true;
 		} else {
 			browserFeatures.colorPicker = false;
 		}
 
 		if(input.offsetWidth <= 10 && input.offsetHeight <= 10) {
-			// console.log(input.clientWidth);
-			console.log("WEIRD SAFARI COLOR PICKER IS BAD!");
+			// bitsyLog(input.clientWidth, "editor");
+			bitsyLog("WEIRD SAFARI COLOR PICKER IS BAD!", "editor");
 			browserFeatures.colorPicker = false;
 			document.getElementById("pageColor").type = "text";
 		}
@@ -838,7 +783,7 @@ function detectBrowserFeatures() {
 
 	var a = document.createElement('a');
 	if (typeof a.download != "undefined") {
-		console.log("downloads supported!");
+		bitsyLog("downloads supported!", "editor");
 		browserFeatures.fileDownload = true;
 	}
 	else {
@@ -847,7 +792,7 @@ function detectBrowserFeatures() {
 
 	browserFeatures.blobURL = (!!new Blob) && (URL != undefined || webkitURL != undefined);
 	if( browserFeatures.blobURL ) {
-		console.log("blob supported!");
+		bitsyLog("blob supported!", "editor");
 		makeURL = URL || webkitURL;
 	}
 }
@@ -882,7 +827,7 @@ var defaultPanelPrefs = {
 		{ id:"settingsPanel",		visible:false,	position:11 },
 	]
 };
-// console.log(defaultPanelPrefs);
+// bitsyLog(defaultPanelPrefs, "editor");
 
 function getPanelPrefs() {
 	// (TODO: weird that engine version and editor version are the same??)
@@ -893,7 +838,7 @@ function getPanelPrefs() {
 	var prefs = useDefaultPrefs ? defaultPanelPrefs : Store.get('panel_prefs', defaultPanelPrefs);
 
 	// add missing panel prefs (if any)
-	// console.log(defaultPanelPrefs);
+	// bitsyLog(defaultPanelPrefs, "editor");
 	for( var i = 0; i < defaultPanelPrefs.workspace.length; i++ ) {
 		var isMissing = true;
 		var panelPref = defaultPanelPrefs.workspace[i];
@@ -912,17 +857,28 @@ function getPanelPrefs() {
 	return prefs;
 }
 
-var urlFlags = {};
-function readUrlFlags() {
-	console.log("@@@@@ FLAGGS")
+var urlParameters = {};
+function readUrlParameters() {
+	bitsyLog(" --- reading url parameters --- ", "editor");
+
 	var urlSplit = window.location.href.split("?");
-	if (urlSplit.length > 1) {
-		for(var i = 1; i < urlSplit.length; i++) {
-			var flagSplit = urlSplit[i].split("=");
-			urlFlags[ flagSplit[0] ] = flagSplit[1];
+
+	if (urlSplit.length >= 2) {
+		var queryString = urlSplit[1];
+		var queryStringSplit = queryString.split("&");
+
+		for (var i = 0; i < queryStringSplit.length; i++) {
+			var parameterSplit = queryStringSplit[i].split("=");
+
+			if (parameterSplit.length >= 2) {
+				var parameterName = parameterSplit[0];
+				var parameterValue = parameterSplit[1];
+
+				bitsyLog("parameter " + parameterName + " = " + parameterValue, "editor");
+				urlParameters[parameterName] = parameterValue;
+			}
 		}
 	}
-	console.log(urlFlags);
 }
 
 function isPortraitOrientation() {
@@ -941,6 +897,8 @@ function isPortraitOrientation() {
 }
 
 function start() {
+	initSystem();
+
 	events.Listen("game_data_change", function(event) {
 		updatePaletteOptionsFromGameData();
 
@@ -961,7 +919,7 @@ function start() {
 
 	detectBrowserFeatures();
 
-	readUrlFlags();
+	readUrlParameters();
 
 	// load icons and replace placeholder elements
 	var elements = document.getElementsByClassName("bitsy_icon");
@@ -975,7 +933,7 @@ function start() {
 	}
 
 	// localization
-	localization = new Localization(urlFlags["lang"]);
+	localization = new Localization(urlParameters["lang"]);
 	Store.init(function () {
 		// TODO: localize
 		window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
@@ -987,17 +945,15 @@ function start() {
 	//init tool controllers
 	roomTool = new RoomTool(canvas);
 	roomTool.listenEditEvents()
-	roomTool.drawing = drawing;
 	roomTool.editDrawingAtCoordinateCallback = editDrawingAtCoordinate;
 
 	paintTool = new PaintTool(document.getElementById("paint"),roomTool);
-	paintTool.drawing = drawing;
 	paintTool.onReloadTile = function(){ reloadTile() };
 	paintTool.onReloadSprite = function(){ reloadSprite() };
 	paintTool.onReloadItem = function(){ reloadItem() };
 
 	markerTool = new RoomMarkerTool(document.getElementById("markerCanvas1"), document.getElementById("markerCanvas2") );
-	console.log("MARKER TOOL " + markerTool);
+	bitsyLog("MARKER TOOL " + markerTool, "editor");
 
 	roomTool.markers = markerTool;
 
@@ -1017,14 +973,16 @@ function start() {
 	//load last auto-save
 	var gamedataStorage = Store.get('game_data');
 	if (gamedataStorage) {
-		//console.log("~~~ found old save data! ~~~");
-		//console.log(gamedataStorage);
+		//bitsyLog("~~~ found old save data! ~~~", "editor");
+		//bitsyLog(gamedataStorage, "editor");
 		document.getElementById("game_data").value = gamedataStorage;
 		on_game_data_change_core();
 	}
 	else {
 		setDefaultGameState();
 	}
+
+	drawing = sprite["A"]; // will this break?
 
 	roomIndex = sortedRoomIdList().indexOf(curRoom);
 
@@ -1114,6 +1072,20 @@ function start() {
 		updateInventoryUI();
 	}
 
+	onInitRoom = function(id) {
+		var curRoomName = "";
+
+		// basically copied from find tool
+		if (room[id].name) {
+			curRoomName = room[id].name;
+		}
+		else {
+			curRoomName = localization.GetStringOrFallback("room_label", "room") + " " + id;
+		}
+
+		document.getElementById("roomCurLocationText").innerText = curRoomName;
+	}
+
 	//color testing
 	// on_change_color_bg();
 	// on_change_color_tile();
@@ -1135,7 +1107,7 @@ function start() {
 	// 	if (inputElements[i].type === "checkbox") {
 	// 		var checkbox = inputElements[i];
 	// 		if (checkbox.checked) {
-	// 			console.log(checkbox);
+	// 			bitsyLog(checkbox, "editor");
 	// 			checkbox.dispatchEvent(new Event("click"));
 	// 		}
 	// 	}
@@ -1167,16 +1139,25 @@ function newDrawing() {
 function nextTile() {
 	var ids = sortedTileIdList();
 	tileIndex = (tileIndex + 1) % ids.length;
-	drawing.id = ids[tileIndex];
+
+	var tileId = ids[tileIndex];
+	drawing = tile[tileId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
 
 function prevTile() {
 	var ids = sortedTileIdList();
+
 	tileIndex = (tileIndex - 1) % ids.length;
-	if (tileIndex < 0) tileIndex = (ids.length-1);
-	drawing.id = ids[tileIndex];
+	if (tileIndex < 0) {
+		tileIndex = (ids.length - 1);
+	}
+
+	var tileId = ids[tileIndex];
+	drawing = tile[tileId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
@@ -1221,8 +1202,8 @@ function on_drawing_name_change() {
 	else
 		obj.name = null;
 
-	console.log("NEW NAME!");
-	console.log(obj);
+	bitsyLog("NEW NAME!", "editor");
+	bitsyLog(obj, "editor");
 
 	updateNamesFromCurData()
 
@@ -1231,15 +1212,15 @@ function on_drawing_name_change() {
 
 	// make sure items referenced in scripts update their names
 	if(drawing.type === TileType.Item) {
-		// console.log("SWAP ITEM NAMES");
+		// bitsyLog("SWAP ITEM NAMES", "editor");
 
 		var ItemNameSwapVisitor = function() {
 			var didSwap = false;
 			this.DidSwap = function() { return didSwap; };
 
 			this.Visit = function(node) {
-				// console.log("VISIT!");
-				// console.log(node);
+				// bitsyLog("VISIT!", "editor");
+				// bitsyLog(node, "editor");
 
 				if( node.type != "function" || node.name != "item" )
 					return; // not the right type of node
@@ -1258,11 +1239,11 @@ function on_drawing_name_change() {
 		if(newName === null || newName === undefined) newName = drawing.id;
 		if(oldName === null || oldName === undefined) oldName = drawing.id;
 
-		// console.log(oldName + " <-> " + newName);
+		// bitsyLog(oldName + " <-> " + newName, "editor");
 
 		if(newName != oldName) {
 			for(dlgId in dialog) {
-				// console.log("DLG " + dlgId);
+				// bitsyLog("DLG " + dlgId, "editor");
 				var dialogScript = scriptInterpreter.Parse(dialog[dlgId].src);
 				var visitor = new ItemNameSwapVisitor();
 				dialogScript.VisitAll(visitor);
@@ -1282,7 +1263,7 @@ function on_drawing_name_change() {
 	}
 
 	refreshGameData();
-	console.log(names);
+	bitsyLog(names, "editor");
 }
 
 function on_palette_name_change(event) {
@@ -1302,7 +1283,10 @@ function selectRoom(roomId) {
 
 	if (nextRoomIndex != -1) {
 		roomIndex = nextRoomIndex;
+
 		curRoom = ids[roomIndex];
+		initRoom(curRoom);
+
 		markerTool.SetRoom(curRoom);
 		roomTool.drawEditMap();
 		paintTool.updateCanvas();
@@ -1320,8 +1304,12 @@ function selectRoom(roomId) {
 
 function nextRoom() {
 	var ids = sortedRoomIdList();
+
 	roomIndex = (roomIndex + 1) % ids.length;
+
 	curRoom = ids[roomIndex];
+	initRoom(curRoom);
+
 	markerTool.SetRoom(curRoom);
 	roomTool.drawEditMap();
 	paintTool.updateCanvas();
@@ -1338,9 +1326,15 @@ function nextRoom() {
 
 function prevRoom() {
 	var ids = sortedRoomIdList();
+
 	roomIndex--;
-	if (roomIndex < 0) roomIndex = (ids.length-1);
+	if (roomIndex < 0) {
+		roomIndex = (ids.length - 1);
+	}
+
 	curRoom = ids[roomIndex];
+	initRoom(curRoom);
+
 	markerTool.SetRoom(curRoom);
 	roomTool.drawEditMap();
 	paintTool.updateCanvas();
@@ -1362,7 +1356,7 @@ function duplicateRoom() {
 	roomIndex = Object.keys( room ).length;
 	var newRoomId = nextRoomId();
 
-	console.log(newRoomId);
+	bitsyLog(newRoomId, "editor");
 	var duplicateTilemap = [];
 	for (y in roomToCopy.tilemap) {
 		duplicateTilemap.push([]);
@@ -1389,7 +1383,7 @@ function duplicateRoom() {
 	refreshGameData();
 
 	curRoom = newRoomId;
-	//console.log(curRoom);
+	//bitsyLog(curRoom, "editor");
 	markerTool.SetRoom(curRoom); // hack to re-find all the markers
 	roomTool.drawEditMap();
 	paintTool.updateCanvas();
@@ -1422,7 +1416,7 @@ function newRoom() {
 	var palIdList = sortedPaletteIdList();
 	var palId = palIdList.length > 0 ? palIdList[0] : "default";
 
-	console.log(roomId);
+	bitsyLog(roomId, "editor");
 	room[roomId] = {
 		id : roomId,
 		tilemap : [
@@ -1453,7 +1447,7 @@ function newRoom() {
 	refreshGameData();
 
 	curRoom = roomId;
-	//console.log(curRoom);
+	//bitsyLog(curRoom, "editor");
 	markerTool.SetRoom(curRoom);
 	roomTool.drawEditMap();
 	paintTool.updateCanvas();
@@ -1511,34 +1505,55 @@ function deleteRoom() {
 function nextItem() {
 	var ids = sortedItemIdList();
 	itemIndex = (itemIndex + 1) % ids.length;
-	drawing.id = ids[itemIndex];
+
+	var itemId = ids[itemIndex];
+	drawing = item[itemId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
 
 function prevItem() {
 	var ids = sortedItemIdList();
+
 	itemIndex = (itemIndex - 1) % ids.length;
-	if (itemIndex < 0) itemIndex = (ids.length-1); // loop
-	drawing.id = ids[itemIndex];
+	if (itemIndex < 0) {
+		itemIndex = (ids.length - 1); // loop
+	}
+
+	var itemId = ids[itemIndex];
+	drawing = item[itemId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
 
 function nextSprite() {
 	var ids = sortedSpriteIdList();
+
 	spriteIndex = (spriteIndex + 1) % ids.length;
-	if (spriteIndex === 0) spriteIndex = 1; //skip avatar
-	drawing.id = ids[spriteIndex];
+	if (spriteIndex === 0) {
+		spriteIndex = 1; //skip avatar
+	}
+
+	var spriteId = ids[spriteIndex];
+	drawing = sprite[spriteId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
 
 function prevSprite() {
 	var ids = sortedSpriteIdList();
+
 	spriteIndex = (spriteIndex - 1) % ids.length;
-	if (spriteIndex <= 0) spriteIndex = (ids.length-1); //loop and skip avatar
-	drawing.id = ids[spriteIndex];
+	if (spriteIndex <= 0) {
+		spriteIndex = (ids.length - 1); //loop and skip avatar
+	}
+
+	var spriteId = ids[spriteIndex];
+	drawing = sprite[spriteId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
@@ -1637,18 +1652,18 @@ function reloadTile() {
 
 		if( paintTool.curDrawingFrameIndex == 0)
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left selected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right unselected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left unselected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right selected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		renderAnimationPreview( drawing.id );
+		renderAnimationPreview(drawing);
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
@@ -1695,18 +1710,18 @@ function reloadSprite() {
 
 		if( paintTool.curDrawingFrameIndex == 0)
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left selected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right unselected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left unselected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right selected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		renderAnimationPreview( drawing.id );
+		renderAnimationPreview(drawing);
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
@@ -1734,18 +1749,18 @@ function reloadItem() {
 
 		if( paintTool.curDrawingFrameIndex == 0)
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left selected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right unselected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
-			document.getElementById("animationKeyframe1").className = "animationThumbnail left unselected";
-			document.getElementById("animationKeyframe2").className = "animationThumbnail right selected";
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		renderAnimationPreview( drawing.id );
+		renderAnimationPreview(drawing);
 	}
 	else {
 		paintTool.isCurDrawingAnimated = false;
@@ -1766,15 +1781,17 @@ function reloadItem() {
 
 function deleteDrawing() {
 	paintTool.deleteDrawing();
-	events.Raise("select_drawing", { id: paintTool.drawing.id, type: paintTool.drawing.type });
+	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
 function toggleToolBar(e) {
-	if( e.target.checked ) {
+	if (e.target.checked) {
 		document.getElementById("toolsPanel").style.display = "flex";
+		document.getElementById("appRoot").classList.add("bitsy-toolbar-open");
 	}
 	else {
 		document.getElementById("toolsPanel").style.display = "none";
+		document.getElementById("appRoot").classList.remove("bitsy-toolbar-open");
 	}
 }
 
@@ -1791,7 +1808,12 @@ function toggleDownloadOptions(e) {
 
 function on_edit_mode() {
 	isPlayMode = false;
-	stopGame();
+
+	document.getElementById("appRoot").classList.remove("bitsy-playmode");
+
+	// stopGame();
+	quitGame();
+
 	// TODO I should really do more to separate the editor's game-data from the engine's game-data
 	parseWorld(document.getElementById("game_data").value); //reparse world to account for any changes during gameplay
 
@@ -1815,7 +1837,6 @@ function on_edit_mode() {
 		// 	advDialogUIComponents[i].GetEl().classList.remove("highlighted");
 		// }
 	}
-	document.getElementById("previewDialogCheck").disabled = false;
 
 	events.Raise("on_edit_mode");
 }
@@ -1829,16 +1850,11 @@ function getFullGameData() {
 function on_play_mode() {
 	isPlayMode = true;
 
+	document.getElementById("appRoot").classList.add("bitsy-playmode");
+
 	roomTool.unlistenEditEvents();
 
-	// load_game(document.getElementById("game_data").value, !isPreviewDialogMode /* startWithTitle */);
-	load_game(getFullGameData(), !isPreviewDialogMode /* startWithTitle */);
-
-	console.log("PLAY!! ~~ PREVIEW ? " + isPreviewDialogMode);
-	if(!isPreviewDialogMode) {
-		console.log("DISALBE PREVIEW!!!");
-		document.getElementById("previewDialogCheck").disabled = true;
-	}
+	loadGame(getFullGameData());
 }
 
 function updatePlayModeButton() {
@@ -1851,12 +1867,7 @@ function updatePlayModeButton() {
 }
 
 function updatePreviewDialogButton() {
-	document.getElementById("previewDialogCheck").checked = isPreviewDialogMode;
-	iconUtils.LoadIcon(document.getElementById("previewDialogIcon"), isPreviewDialogMode ? "stop" : "play");
-
-	var stopText = localization.GetStringOrFallback("stop_game", "stop");
-	var previewText = localization.GetStringOrFallback("dialog_start_preview", "preview");
-	document.getElementById("previewDialogText").innerHTML = isPreviewDialogMode ? stopText : previewText;
+	// todo : remove?
 }
 
 function togglePaintGrid(e) {
@@ -1910,7 +1921,7 @@ function updateRoomPaletteSelect() {
 	var palOptions = document.getElementById("roomPaletteSelect").options;
 	for (i in palOptions) {
 		var o = palOptions[i];
-		// console.log(o);
+		// bitsyLog(o, "editor");
 		if (o.value === curPal()) {
 			o.selected = true;
 		}
@@ -1974,7 +1985,12 @@ function addColor() {
 function roomPaletteChange(event) {
 	var palId = event.target.value;
 	room[curRoom].pal = palId;
+
+	// hacky?
+	initRoom(curRoom);
+
 	refreshGameData();
+
 	markerTool.SetRoom(curRoom);
 	roomTool.drawEditMap();
 	paintTool.updateCanvas();
@@ -1999,11 +2015,13 @@ function updateDrawingNameUI() {
 }
 
 function on_paint_avatar() {
-	drawing.type = TileType.Avatar;
-	drawing.id = "A";
-	paintTool.reloadDrawing();
+	spriteIndex = 0;
+	drawing = sprite["A"];
 
+	paintTool.reloadDrawing();
 	on_paint_avatar_ui_update();
+
+	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
 function on_paint_avatar_ui_update() {
@@ -2022,12 +2040,14 @@ function on_paint_avatar_ui_update() {
 }
 
 function on_paint_tile() {
-	drawing.type = TileType.Tile;
 	tileIndex = 0;
-	drawing.id = sortedTileIdList()[tileIndex];
-	paintTool.reloadDrawing();
+	var tileId = sortedTileIdList()[tileIndex];
+	drawing = tile[tileId];
 
+	paintTool.reloadDrawing();
 	on_paint_tile_ui_update();
+
+	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
 function on_paint_tile_ui_update() {
@@ -2046,7 +2066,6 @@ function on_paint_tile_ui_update() {
 }
 
 function on_paint_sprite() {
-	drawing.type = TileType.Sprite;
 	if (sortedSpriteIdList().length > 1)
 	{
 		spriteIndex = 1;
@@ -2054,11 +2073,15 @@ function on_paint_sprite() {
 	else {
 		spriteIndex = 0; //fall back to avatar if no other sprites exist
 	}
-	drawing.id = sortedSpriteIdList()[spriteIndex];
+
+	var spriteId = sortedSpriteIdList()[spriteIndex];
+	drawing = sprite[spriteId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
-
 	on_paint_sprite_ui_update();
+
+	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
 function on_paint_sprite_ui_update() {
@@ -2077,15 +2100,15 @@ function on_paint_sprite_ui_update() {
 }
 
 function on_paint_item() {
-	console.log("PAINT ITEM");
-	drawing.type = TileType.Item;
 	itemIndex = 0;
-	drawing.id = sortedItemIdList()[itemIndex];
-	console.log(drawing.id);
+	var itemId = sortedItemIdList()[itemIndex];
+	drawing = item[itemId];
+
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
-
 	on_paint_item_ui_update();
+
+	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
 function on_paint_item_ui_update() {
@@ -2105,7 +2128,7 @@ function on_paint_item_ui_update() {
 
 function editDrawingAtCoordinate(x,y) {
 	var spriteId = getSpriteAt(x,y); // todo: need more consistency with these methods
-	// console.log(spriteId);
+	// bitsyLog(spriteId, "editor");
 	if(spriteId) {
 		if(spriteId === "A") {
 			on_paint_avatar_ui_update();
@@ -2114,41 +2137,36 @@ function editDrawingAtCoordinate(x,y) {
 			on_paint_sprite_ui_update();
 		}
 
-		var drawing = new DrawingId( spriteId === "A" ? TileType.Avatar : TileType.Sprite, spriteId );
-		paintTool.selectDrawing( drawing );
+		paintTool.selectDrawing(sprite[spriteId]);
 		return;
 	}
 
 	var item = getItem(curRoom,x,y);
-	// console.log(item);
+	// bitsyLog(item, "editor");
 	if(item) {
 		on_paint_item_ui_update();
-		var drawing = new DrawingId( TileType.Item, item.id );
-		paintTool.selectDrawing( drawing );
+		paintTool.selectDrawing(item[item.id]);
 		return;
 	}
 
 	var tileId = getTile(x,y);
-	// console.log(tileId);
+	// bitsyLog(tileId, "editor");
 	if(tileId != 0) {
 		on_paint_tile_ui_update(); // really wasteful probably
-		var drawing = new DrawingId( TileType.Tile, tileId );
-		paintTool.selectDrawing( drawing );
+		paintTool.selectDrawing(tile[tileId]);
 		return;
 	}
 }
 
 var animationThumbnailRenderer = new ThumbnailRenderer();
-function renderAnimationThumbnail(imgId,id,frameIndex) {
-	var drawingId = new DrawingId(drawing.type,id); // HACK!!! - need consistency on how type + id should be coupled
-	animationThumbnailRenderer.Render(imgId,drawingId,frameIndex);
+function renderAnimationThumbnail(imgId, drawing, frameIndex) {
+	animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
-function renderAnimationPreview(id) {
-	// console.log("RENDRE ANIM PREVIW");
-	renderAnimationThumbnail( "animationThumbnailPreview", id );
-	renderAnimationThumbnail( "animationThumbnailFrame1", id, 0 );
-	renderAnimationThumbnail( "animationThumbnailFrame2", id, 1 );
+function renderAnimationPreview(drawing) {
+	renderAnimationThumbnail("animationThumbnailPreview", drawing);
+	renderAnimationThumbnail("animationThumbnailFrame1", drawing, 0);
+	renderAnimationThumbnail("animationThumbnailFrame2", drawing, 1);
 }
 function selectColor() {
     console.log(this);
@@ -2163,20 +2181,8 @@ function selectColor() {
     }
 }
 
-function selectPaint() {
-	drawing.id = this.value;
-	if( drawing.type === TileType.Tile ) {
-		tileIndex = sortedTileIdList().indexOf( drawing.id );
-		paintTool.reloadDrawing();
-	}
-	else if( drawing.type === TileType.Item ) {
-		itemIndex = sortedItemIdList().indexOf( drawing.id );
-		paintTool.reloadDrawing();
-	}
-	else {
-		spriteIndex = sortedSpriteIdList().indexOf( drawing.id );
-		paintTool.reloadDrawing();
-	}
+function renderPaintThumbnail(drawing) {
+	renderAnimationThumbnail("animationThumbnailPreview", drawing);
 }
 
 function getCurPaintModeStr() {
@@ -2207,78 +2213,54 @@ function on_game_data_change() {
 }
 
 function on_game_data_change_core() {
-	console.log(document.getElementById("game_data").value);
+	bitsyLog(document.getElementById("game_data").value, "editor");
 
 	clearGameData();
 	var version = parseWorld(document.getElementById("game_data").value); //reparse world if user directly manipulates game data
 
-	var curPaintMode = drawing.type; //save current paint mode (hacky)
+	var curPaintMode = TileType.Avatar;
+
+	if (drawing) {
+		curPaintMode = drawing.type;
+	}
 
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
 	if (Object.keys(sprite).length == 0) {
-		drawing.type = TileType.Avatar;
-		drawing.id = "A";
-		makeSprite(drawing.id);
+		makeSprite("A");
 		sprite["A"].room = null;
 		sprite["A"].x = -1;
 		sprite["A"].y = -1;
 	}
 	if (Object.keys(tile).length == 0) {
-		drawing.type = TileType.Tile;
-		drawing.id = "a";
-		makeTile(drawing.id);
+		makeTile("a");
 	}
-	// if (Object.keys(room).length == 0) {
-	// 	room["0"] = {
-	// 		id : "0",
-	// 		tilemap : [
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],
-	// 				["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
-	// 			],
-	// 		walls : [],
-	// 		exits : [],
-	// 		pal : "0"
-	// 	};
-	// }
+	if (Object.keys(room).length == 0) {
+		// TODO : ?
+	}
 	if (Object.keys(item).length == 0) {
-		drawing.type = TileType.Item;
-		drawing.id = "0";
-		makeItem( drawing.id );
+		makeItem("0");
 	}
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	roomIndex = 0;
 	roomTool.drawEditMap();
 
-	drawing.type = curPaintMode;
-	if (drawing.type == TileType.Tile) {
-		drawing.id = sortedTileIdList()[0];
+	if (curPaintMode === TileType.Tile) {
+		drawing = tile[sortedTileIdList()[0]];
 	}
-	else if (drawing.type === TileType.Item) {
-		drawing.id = sortedItemIdList()[0];
+	else if (curPaintMode === TileType.Item) {
+		drawing = item[sortedItemIdList()[0]];
 	}
-	else if (drawing.type === TileType.Avatar) {
-		drawing.id = "A";
+	else if (curPaintMode === TileType.Avatar) {
+		drawing = sprite["A"];
 	}
-	else if (drawing.type === TileType.Sprite) {
-		drawing.id = sortedSpriteIdList().filter(function (id) { return id != "A"; })[0];
+	else if (curPaintMode === TileType.Sprite) {
+		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
 	}
+
 	paintTool.reloadDrawing();
 
 	// if user pasted in a custom font into game data - update the stored custom font
@@ -2325,7 +2307,7 @@ function updateFontDescriptionUI() {
 	for (var i in fontSelect.options) {
 		var fontOption = fontSelect.options[i];
 		var fontDescriptionId = fontOption.value + "_description";
-		// console.log(fontDescriptionId);
+		// bitsyLog(fontDescriptionId, "editor");
 		var fontDescription = document.getElementById(fontDescriptionId);
 		if (fontDescription != null) {
 			fontDescription.style.display = fontOption.selected ? "block" : "none";
@@ -2522,7 +2504,7 @@ function setElementClass(elementId, classId, addClass) {
 	else {
 		el.classList.remove(classId);
 	}
-	console.log(el.classList);
+	bitsyLog(el.classList, "editor");
 }
 
 function togglePanelAnimated(e) {
@@ -2640,10 +2622,10 @@ function afterHidePanel(id) {
 
 
 function updatePanelPrefs() {
-	// console.log("UPDATE PREFS");
+	// bitsyLog("UPDATE PREFS", "editor");
 
 	var prefs = getPanelPrefs();
-	// console.log(prefs);
+	// bitsyLog(prefs, "editor");
 
 	var editorContent = document.getElementById("editorContent");
 	var cards = editorContent.getElementsByClassName("bitsy-workbench-item");
@@ -2662,9 +2644,9 @@ function updatePanelPrefs() {
 		}
 	}
 
-	// console.log(prefs);
+	// bitsyLog(prefs, "editor");
 	Store.set('panel_prefs', prefs);
-	// console.log(Store.get('panel_prefs'));
+	// bitsyLog(Store.get('panel_prefs'), "editor");
 }
 
 function getPanelSetting(panelId, settingId) {
@@ -2746,10 +2728,10 @@ function takeSnapshotGif(e) {
 	gifCaptureCanvas.width = 512; // stop hardcoding 512?
 	gifCaptureCanvas.height = 512;
 
-	drawRoom( room[curRoom], gifCaptureCtx, 0 );
+	renderGameScreenIntoContext(curRoom, gifCaptureCtx, 0);
 	var frame0 = gifCaptureCtx.getImageData(0,0,512,512);
 
-	drawRoom( room[curRoom], gifCaptureCtx, 1 );
+	renderGameScreenIntoContext(curRoom, gifCaptureCtx, 1);
 	var frame1 = gifCaptureCtx.getImageData(0,0,512,512);
 
 	if (isGifSnapshotLandscape) {
@@ -2893,6 +2875,11 @@ function importGameFromFile(e) {
 		// change game data & reload everything
         document.getElementById("game_data").value = gameDataStr;
 		on_game_data_change();
+
+		// reset find tool (a bit heavy handed?)
+		findTool = new FindTool({
+			mainElement : document.getElementById("findPanelMain"),
+		});
 	}
 }
 
@@ -2905,7 +2892,7 @@ function importFontFromFile(e) {
 
 	reader.onloadend = function() {
 		var fileText = reader.result;
-		console.log(fileText);
+		bitsyLog(fileText, "editor");
 
 		var customFontName = (fontManager.Create(fileText)).getName();
 
@@ -2928,10 +2915,10 @@ function importFontFromFile(e) {
 
 /* ANIMATION EDITING*/
 function on_toggle_animated() {
-	console.log("ON TOGGLE ANIMATED");
-	console.log(document.getElementById("animatedCheckbox").checked);
-	console.log(drawing.type);
-	console.log("~~~~~");
+	bitsyLog("ON TOGGLE ANIMATED", "editor");
+	bitsyLog(document.getElementById("animatedCheckbox").checked, "editor");
+	bitsyLog(drawing.type, "editor");
+	bitsyLog("~~~~~", "editor");
 	if ( document.getElementById("animatedCheckbox").checked ) {
 		if ( drawing.type === TileType.Sprite || drawing.type === TileType.Avatar ) {
 			addSpriteAnimation();
@@ -2944,24 +2931,23 @@ function on_toggle_animated() {
 		}
 		document.getElementById("animation").setAttribute("style","display:block;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_more");
-		console.log(drawing.id);
-		renderAnimationPreview( drawing.id );
+		bitsyLog(drawing.id, "editor");
+		renderAnimationPreview(drawing);
 	}
 	else {
 		if ( drawing.type === TileType.Sprite || drawing.type === TileType.Avatar ) {
 			removeSpriteAnimation();
 		}
 		else if ( drawing.type === TileType.Tile ) {
-			removeTileAnimation();			
+			removeTileAnimation();
 		}
 		else if ( drawing.type === TileType.Item ) {
-			console.log("REMOVE ITEM ANIMATION");
+			bitsyLog("REMOVE ITEM ANIMATION", "editor");
 			removeItemAnimation();
 		}
 		document.getElementById("animation").setAttribute("style","display:none;");
 		iconUtils.LoadIcon(document.getElementById("animatedCheckboxIcon"), "expand_less");
 	}
-	renderPaintThumbnail( drawing.id );
 }
 
 function addSpriteAnimation() {
@@ -2976,14 +2962,16 @@ function addSpriteAnimation() {
 
 	//add blank frame to sprite (or restore removed animation)
 	var spriteImageId = "SPR_" + drawing.id;
-	if (sprite[drawing.id].cachedAnimation != null) {
-		restoreDrawingAnimation( spriteImageId, sprite[drawing.id].cachedAnimation )
+
+	if (sprite[drawing.id].cachedAnimation && sprite[drawing.id].cachedAnimation.length >= 1) {
+		addDrawingAnimation(spriteImageId, sprite[drawing.id].cachedAnimation[0]);
 	}
 	else {
-		addNewFrameToDrawing( spriteImageId );
+		addDrawingAnimation(spriteImageId);
 	}
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model
 	refreshGameData();
@@ -3007,7 +2995,8 @@ function removeSpriteAnimation() {
 	cacheDrawingAnimation( sprite[drawing.id], spriteImageId );
 	removeDrawingAnimation( spriteImageId );
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model
 	refreshGameData();
@@ -3029,14 +3018,15 @@ function addTileAnimation() {
 
 	//add blank frame to tile (or restore removed animation)
 	var tileImageId = "TIL_" + drawing.id;
-	if (tile[drawing.id].cachedAnimation != null) {
-		restoreDrawingAnimation( tileImageId, tile[drawing.id].cachedAnimation )
+	if (tile[drawing.id].cachedAnimation && tile[drawing.id].cachedAnimation.length >= 1) {
+		addDrawingAnimation(tileImageId, tile[drawing.id].cachedAnimation[0]);
 	}
 	else {
-		addNewFrameToDrawing( tileImageId );
+		addDrawingAnimation(tileImageId);
 	}
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model
 	refreshGameData();
@@ -3060,7 +3050,8 @@ function removeTileAnimation() {
 	cacheDrawingAnimation( tile[drawing.id], tileImageId );
 	removeDrawingAnimation( tileImageId );
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model
 	refreshGameData();
@@ -3083,14 +3074,15 @@ function addItemAnimation() {
 
 	//add blank frame to item (or restore removed animation)
 	var itemImageId = "ITM_" + drawing.id;
-	if (item[drawing.id].cachedAnimation != null) {
-		restoreDrawingAnimation( itemImageId, item[drawing.id].cachedAnimation )
+	if (item[drawing.id].cachedAnimation && item[drawing.id].cachedAnimation.length >= 1) {
+		addDrawingAnimation(itemImageId, item[drawing.id].cachedAnimation[0]);
 	}
 	else {
-		addNewFrameToDrawing( itemImageId );
+		addDrawingAnimation(itemImageId);
 	}
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model
 	refreshGameData();
@@ -3114,7 +3106,8 @@ function removeItemAnimation() {
 	cacheDrawingAnimation( item[drawing.id], itemImageId );
 	removeDrawingAnimation( itemImageId );
 
-	// TODO RENDERER : refresh images
+	// refresh images
+	renderer.ClearCache();
 
 	//refresh data model (TODO : these should really be a shared method)
 	refreshGameData();
@@ -3124,41 +3117,38 @@ function removeItemAnimation() {
 	resetAllAnimations();
 }
 
-function addNewFrameToDrawing(drwId) {
-	// copy first frame data into new frame
-	var imageSource = renderer.GetImageSource(drwId);
-	var firstFrame = imageSource[0];
-	var newFrame = [];
-	var tilesize = firstFrame.length;
-	for (var y = 0; y < tilesize; y++) {
-		newFrame.push([]);
-		for (var x = 0; x < tilesize; x++) {
-			newFrame[y].push( firstFrame[y][x] );
+function addDrawingAnimation(drwId, frameData) {
+	var drawingSource = renderer.GetDrawingSource(drwId);
+
+	if (!frameData) {
+		var firstFrame = drawingSource[0];
+
+		// copy first frame data into second frame
+		frameData = [];
+		for (var y = 0; y < tilesize; y++) {
+			frameData.push([]);
+			for (var x = 0; x < tilesize; x++) {
+				frameData[y].push(firstFrame[y][x]);
+			}
 		}
 	}
-	imageSource.push( newFrame );
-	renderer.SetImageSource(drwId, imageSource);
+
+	drawingSource[1] = frameData;
+
+	renderer.SetDrawingSource(drwId, drawingSource);
 }
 
 function removeDrawingAnimation(drwId) {
-	var imageSource = renderer.GetImageSource(drwId);
-	var oldImageData = imageSource.slice(0);
-	renderer.SetImageSource( drwId, [ oldImageData[0] ] );
+	var drawingData = renderer.GetDrawingSource(drwId);
+	var oldDrawingData = drawingData.slice(0);
+	renderer.SetDrawingSource(drwId, [oldDrawingData[0]]);
 }
 
 // let's us restore the animation during the session if the user wants it back
-function cacheDrawingAnimation(drawing,sourceId) {
-	var imageSource = renderer.GetImageSource(sourceId);
-	var oldImageData = imageSource.slice(0);
-	drawing.cachedAnimation = [ oldImageData[1] ]; // ah the joys of javascript
-}
-
-function restoreDrawingAnimation(sourceId,cachedAnimation) {
-	var imageSource = renderer.GetImageSource(sourceId);
-	for (f in cachedAnimation) {
-		imageSource.push( cachedAnimation[f] );	
-	}
-	renderer.SetImageSource(sourceId, imageSource);
+function cacheDrawingAnimation(drawing, sourceId) {
+	var drawingData = renderer.GetDrawingSource(sourceId);
+	var oldDrawingData = drawingData.slice(0);
+	drawing.cachedAnimation = [oldDrawingData[1]]; // ah the joys of javascript
 }
 
 function on_paint_frame1() {
@@ -3177,7 +3167,7 @@ var export_settings = {
 
 function on_change_color_page() {
 	var hex = document.getElementById("pageColor").value;
-	//console.log(hex);
+	//bitsyLog(hex, "editor");
 	var rgb = hexToRgb( hex );
 	// document.body.style.background = hex;
 	document.getElementById("roomPanel").style.background = hex;
@@ -3189,7 +3179,7 @@ function on_change_color_page() {
 function getComplimentingColor(palId) {
 	if (!palId) palId = curPal();
 	var hsl = rgbToHsl( getPal(palId)[0][0], getPal(palId)[0][1], getPal(palId)[0][2] );
-	// console.log(hsl);
+	// bitsyLog(hsl, "editor");
 	var lightness = hsl[2];
 	if (lightness > 0.5) {
 		return "#fff";
@@ -3215,8 +3205,8 @@ function grabCard(e) {
 
 	// e.preventDefault();
 
-	console.log("--- GRAB START");
-	console.log(grabbedPanel.card);
+	bitsyLog("--- GRAB START", "editor");
+	bitsyLog(grabbedPanel.card, "editor");
 
 	if (grabbedPanel.card != null) return;
 
@@ -3227,8 +3217,8 @@ function grabCard(e) {
 
 	if(grabbedPanel.card == null) return; // couldn't find a panel above the handle - abort!
 
-	console.log(grabbedPanel.card);
-	console.log("--")
+	bitsyLog(grabbedPanel.card, "editor");
+	bitsyLog("--", "editor")
 
 	grabbedPanel.size = getElementSize( grabbedPanel.card );
 	var pos = getElementPosition( grabbedPanel.card );
@@ -3238,17 +3228,17 @@ function grabCard(e) {
 	grabbedPanel.shadow.style.width = grabbedPanel.size.x + "px";
 	grabbedPanel.shadow.style.height = grabbedPanel.size.y + "px";
 
-	console.log( document.getElementById("editorContent") );
-	console.log( grabbedPanel.shadow );
-	console.log( grabbedPanel.card );
+	bitsyLog( document.getElementById("editorContent") , "editor");
+	bitsyLog( grabbedPanel.shadow , "editor");
+	bitsyLog( grabbedPanel.card , "editor");
 
 	document.getElementById("editorContent").insertBefore( grabbedPanel.shadow, grabbedPanel.card );
 	grabbedPanel.cursorOffset.x = e.clientX - pos.x;
 	grabbedPanel.cursorOffset.y = e.clientY - pos.y;
-	console.log("client " + e.clientX);
-	console.log("card " + pos.x);
-	console.log("offset " + grabbedPanel.cursorOffset.x);
-	// console.log("screen " + e.screenX);
+	bitsyLog("client " + e.clientX, "editor");
+	bitsyLog("card " + pos.x, "editor");
+	bitsyLog("offset " + grabbedPanel.cursorOffset.x, "editor");
+	// bitsyLog("screen " + e.screenX, "editor");
 	grabbedPanel.card.style.position = "absolute";
 	grabbedPanel.card.style.left = e.clientX - grabbedPanel.cursorOffset.x + "px";
 	grabbedPanel.card.style.top = e.clientY - grabbedPanel.cursorOffset.y + "px";
@@ -3258,8 +3248,8 @@ function grabCard(e) {
 function panel_onMouseMove(e) {
 	if (grabbedPanel.card == null) return;
 
-	console.log("-- PANEL MOVE");
-	console.log(grabbedPanel.card);
+	bitsyLog("-- PANEL MOVE", "editor");
+	bitsyLog(grabbedPanel.card, "editor");
 
 	grabbedPanel.card.style.left = e.clientX - grabbedPanel.cursorOffset.x + "px";
 	grabbedPanel.card.style.top = e.clientY - grabbedPanel.cursorOffset.y + "px";
@@ -3268,7 +3258,7 @@ function panel_onMouseMove(e) {
 	var cardSize = grabbedPanel.size;
 	var cardCenter = { x:cardPos.x+cardSize.x/2, y:cardPos.y+cardSize.y/2 };
 
-	console.log(cardCenter);
+	bitsyLog(cardCenter, "editor");
 
 	var editorContent = document.getElementById("editorContent");
 	var editorContentWidth = editorContent.getBoundingClientRect().width;
@@ -3276,16 +3266,16 @@ function panel_onMouseMove(e) {
 
 	for(var j = 0; j < otherCards.length; j++) {
 		var other = otherCards[j];
-		// console.log(other);
+		// bitsyLog(other, "editor");
 		var otherPos = getElementPosition( other );
 		var otherSize = getElementSize( other );
 		var otherCenter = { x:otherPos.x+otherSize.x/2, y:otherPos.y+otherSize.y/2 };
 
-		// console.log(otherCenter);
+		// bitsyLog(otherCenter, "editor");
 
 		if ( cardCenter.x < otherCenter.x ) {
-			console.log("INSERT " + cardCenter.x + " " + otherCenter.x);
-			console.log(other);
+			bitsyLog("INSERT " + cardCenter.x + " " + otherCenter.x, "editor");
+			bitsyLog(other, "editor");
 
 			editorContent.insertBefore( grabbedPanel.shadow, other );
 			break;
@@ -3296,7 +3286,7 @@ function panel_onMouseMove(e) {
 		}
 	}
 
-	console.log("********")
+	bitsyLog("********", "editor")
 }
 document.addEventListener("mousemove",panel_onMouseMove);
 
@@ -3325,13 +3315,13 @@ document.addEventListener("mouseup",panel_onMouseUp);
 // TODO consolidate these into one function?
 function getElementPosition(e) { /* gets absolute position on page */
 	if (!e.getBoundingClientRect) {
-		console.log("NOOO BOUNDING RECT!!!");
+		bitsyLog("NOOO BOUNDING RECT!!!", "editor");
 		return {x:0,y:0};
 	}
 
 	var rect = e.getBoundingClientRect();
 	var pos = {x:rect.left,y:rect.top};
-	// console.log(pos);
+	// bitsyLog(pos, "editor");
 	return pos;
 }
 
@@ -3535,7 +3525,7 @@ function switchFont(newFontName, doPickTextDirection) {
 	fontName = newFontName;
 
 	if (doPickTextDirection) {
-		console.log("PICK TEXT DIR");
+		bitsyLog("PICK TEXT DIR", "editor");
 		pickDefaultTextDirectionForFont(newFontName);
 	}
 
@@ -3562,7 +3552,7 @@ function initLanguageOptions() {
 }
 
 function on_change_text_direction(e) {
-	console.log("CHANGE TEXT DIR " + e.target.value);
+	bitsyLog("CHANGE TEXT DIR " + e.target.value, "editor");
 	updateEditorTextDirection(e.target.value);
 	refreshGameData();
 }
@@ -3580,7 +3570,7 @@ function updateEditorTextDirection(newTextDirection) {
 	var prevTextDirection = textDirection;
 	textDirection = newTextDirection;
 
-	console.log("TEXT BOX TEXT DIR " + textDirection);
+	bitsyLog("TEXT BOX TEXT DIR " + textDirection, "editor");
 
 	if (prevTextDirection != null) {
 		document.body.classList.remove("dir_" + prevTextDirection.toLowerCase());
@@ -3629,8 +3619,8 @@ function CreateDefaultName(defaultNamePrefix, objectStore, ignoreNumberIfFirstNa
 
 /* DOCS */
 function toggleDialogDocs(e) {
-	console.log("SHOW DOCS");
-	console.log(e.target.checked);
+	bitsyLog("SHOW DOCS", "editor");
+	bitsyLog(e.target.checked, "editor");
 	if (e.target.checked) {
 		document.getElementById("dialogDocs").style.display = "block";
 		document.getElementById("dialogToggleDocsShowText").style.display = "none";
@@ -3662,7 +3652,7 @@ function tryWarnAboutMissingCharacters(text) {
 
 	var hasMissingCharacter = false;
 
-	console.log(missingCharacterWarningState.curFont.getData());
+	bitsyLog(missingCharacterWarningState.curFont.getData(), "editor");
 
 	for (var i = 0; i < text.length; i++) {
 		var character = text[i];
@@ -3690,3 +3680,29 @@ var iconUtils = new IconUtils(); // TODO : move?
 
 /* NEW FIND TOOL */
 var findTool = null;
+
+function openFindTool(categoryId, insertNextToId) {
+	if (findTool) {
+		findTool.SelectCategory(categoryId);
+	}
+
+	showPanel("findPanel", insertNextToId);
+}
+
+function openFindToolWithCurrentPaintCategory() {
+	var categoryId = "avatar";
+
+	if (drawing) {
+		if (drawing.type === TileType.Tile) {
+			categoryId = "tile";
+		}
+		else if (drawing.type === TileType.Sprite) {
+			categoryId = "sprite";
+		}
+		else if (drawing.type === TileType.Item) {
+			categoryId = "item";
+		}
+	}
+
+	openFindTool(categoryId, "paintPanel");
+}

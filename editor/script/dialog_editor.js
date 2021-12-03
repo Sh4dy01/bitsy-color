@@ -351,7 +351,6 @@ function DialogTool() {
 
 			var codeTextArea = document.createElement("textarea");
 			codeTextArea.rows = 2;
-			codeTextArea.cols = 32;
 			codeTextArea.classList.add(style);
 			codeTextArea.value = scriptRootNode.Serialize();
 			function OnTextChangeHandler() {
@@ -360,8 +359,8 @@ function DialogTool() {
 
 				// useful debug messages when parsing is broken:
 				// scriptInterpreter.DebugVisualizeScriptTree(scriptRootNode);
-				// console.log(dialogStr);
-				// console.log(scriptRootNode.Serialize());
+				// bitsyLog(dialogStr, "editor");
+				// bitsyLog(scriptRootNode.Serialize(), "editor");
 
 				OnUpdate();
 			}
@@ -510,7 +509,7 @@ function DialogTool() {
 					viewportDiv.style.display = "block";
 				},
 				function(expressionNode) { // accept
-					console.log(expressionNode.Serialize());
+					bitsyLog(expressionNode.Serialize(), "editor");
 					expressionBuilderDiv.style.display = "none";
 					viewportDiv.style.display = "block";
 					onAcceptHandler(expressionNode);
@@ -1062,7 +1061,6 @@ function DialogTool() {
 			textArea.onblur = OnDialogTextChange;
 
 			textArea.rows = Math.max(2, dialogText.split("\n").length + 1);
-			textArea.cols = 32;
 
 			textArea.addEventListener('click', textSelectionChangeHandler);
 			textArea.addEventListener('select', textSelectionChangeHandler);
@@ -1173,7 +1171,7 @@ function DialogTool() {
 			textboxContentDiv.contentEditable = true;
 			textboxContentDiv.spellcheck = false;
 			textboxContentDiv.addEventListener("input", function(e) {
-				console.log(textboxContentDiv.innerText);
+				bitsyLog(textboxContentDiv.innerText, "editor");
 			});
 		}
 
@@ -1649,7 +1647,7 @@ function DialogTool() {
 					sequenceTypeSelect.appendChild(sequenceTypeOption);
 				}
 				sequenceTypeSelect.onchange = function() {
-					console.log(sequenceNode);
+					bitsyLog(sequenceNode, "editor");
 					sequenceNode = scriptUtils.ChangeSequenceType(sequenceNode, sequenceTypeSelect.value);
 					node.SetChildren([sequenceNode]);
 					CreateSequenceDescription(true);
@@ -2807,7 +2805,7 @@ function DialogTool() {
 						itemThumbnail.id = "param_item_" + curValue;
 						itemThumbnail.style.width = "16px";
 						itemThumbnail.style.marginLeft = "4px";
-						thumbnailRenderer.Render(itemThumbnail.id, new DrawingId(TileType.Item, curValue), 0, itemThumbnail);
+						thumbnailRenderer.Render(itemThumbnail.id, item[curValue], 0, itemThumbnail);
 					}
 				}
 				else if (type === "transition") {

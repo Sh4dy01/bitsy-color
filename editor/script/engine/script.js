@@ -16,7 +16,7 @@ var Interpreter = function() {
 
 	// TODO -- maybe this should return a string instead othe actual script??
 	this.Compile = function(scriptName, scriptStr) {
-		// console.log("COMPILE");
+		// bitsyLog("COMPILE");
 		var script = parser.Parse(scriptStr, scriptName);
 		env.SetScript(scriptName, script);
 	}
@@ -32,7 +32,7 @@ var Interpreter = function() {
 		script.Eval( localEnv, function(result) { OnScriptReturn(localEnv, exitHandler); } );
 	}
 	this.Interpret = function(scriptStr, exitHandler, objectContext) { // Compiles and runs code immediately
-		// console.log("INTERPRET");
+		// bitsyLog("INTERPRET");
 		var localEnv = new LocalEnvironment(env);
 
 		if (objectContext) {
@@ -107,7 +107,7 @@ var Interpreter = function() {
 	function DebugVisualizeScriptTree(scriptTree) {
 		var printVisitor = {
 			Visit : function(node,depth) {
-				console.log("-".repeat(depth) + "- " + node.ToString());
+				bitsyLog("-".repeat(depth) + "- " + node.ToString());
 			},
 		};
 
@@ -365,7 +365,7 @@ var Utils = function() {
 
 /* BUILT-IN FUNCTIONS */ // TODO: better way to encapsulate these?
 function deprecatedFunc(environment,parameters,onReturn) {
-	console.log("BITSY SCRIPT WARNING: Tried to use deprecated function");
+	bitsyLog("BITSY SCRIPT WARNING: Tried to use deprecated function");
 	onReturn(null);
 }
 
@@ -381,7 +381,7 @@ function printFunc(environment, parameters, onReturn) {
 }
 
 function linebreakFunc(environment, parameters, onReturn) {
-	// console.log("LINEBREAK FUNC");
+	// bitsyLog("LINEBREAK FUNC");
 	environment.GetDialogBuffer().AddLinebreak();
 	environment.GetDialogBuffer().AddScriptReturn(function() { onReturn(null); });
 }
@@ -398,28 +398,28 @@ function printDrawingFunc(environment, parameters, onReturn) {
 
 function printSpriteFunc(environment,parameters,onReturn) {
 	var spriteId = parameters[0];
-	if(names.sprite.has(spriteId)) spriteId = names.sprite.get(spriteId); // id is actually a name
+	if(names.sprite[spriteId] != undefined) spriteId = names.sprite[spriteId]; // id is actually a name
 	var drawingId = sprite[spriteId].drw;
 	printDrawingFunc(environment, [drawingId], onReturn);
 }
 
 function printTileFunc(environment,parameters,onReturn) {
 	var tileId = parameters[0];
-	if(names.tile.has(tileId)) tileId = names.tile.get(tileId); // id is actually a name
+	if(names.tile[tileId] != undefined) tileId = names.tile[tileId]; // id is actually a name
 	var drawingId = tile[tileId].drw;
 	printDrawingFunc(environment, [drawingId], onReturn);
 }
 
 function printItemFunc(environment,parameters,onReturn) {
 	var itemId = parameters[0];
-	if(names.item.has(itemId)) itemId = names.item.get(itemId); // id is actually a name
+	if(names.item[itemId] != undefined) itemId = names.item[itemId]; // id is actually a name
 	var drawingId = item[itemId].drw;
 	printDrawingFunc(environment, [drawingId], onReturn);
 }
 
 function printFontFunc(environment, parameters, onReturn) {
 	var allCharacters = "";
-	var font = fontManager.Get( fontName );
+	var font = fontManager.Get(fontName);
 	var codeList = font.allCharCodes();
 	for (var i = 0; i < codeList.length; i++) {
 		allCharacters += String.fromCharCode(codeList[i]) + " ";
@@ -430,9 +430,9 @@ function printFontFunc(environment, parameters, onReturn) {
 function itemFunc(environment,parameters,onReturn) {
 	var itemId = parameters[0];
 
-	if (names.item.has(itemId)) {
+	if (names.item[itemId] != undefined) {
 		// id is actually a name
-		itemId = names.item.get(itemId);
+		itemId = names.item[itemId];
 	}
 
 	var curItemCount = player().inventory[itemId] ? player().inventory[itemId] : 0;
@@ -513,7 +513,7 @@ function propertyFunc(environment, parameters, onReturn) {
 		}
 	}
 
-	console.log("PROPERTY! " + propertyName + " " + outValue);
+	bitsyLog("PROPERTY! " + propertyName + " " + outValue);
 
 	onReturn(outValue);
 }
@@ -528,9 +528,9 @@ function endFunc(environment,parameters,onReturn) {
 function exitFunc(environment,parameters,onReturn) {
 	var destRoom = parameters[0];
 
-	if (names.room.has(destRoom)) {
+	if (names.room[destRoom] != undefined) {
 		// it's a name, not an id! (note: these could cause trouble if people names things weird)
-		destRoom = names.room.get(destRoom);
+		destRoom = names.room[destRoom];
 	}
 
 	var destX = parseInt(parameters[1]);
@@ -567,7 +567,7 @@ function exitFunc(environment,parameters,onReturn) {
 
 /* BUILT-IN OPERATORS */
 function setExp(environment,left,right,onReturn) {
-	// console.log("SET " + left.name);
+	// bitsyLog("SET " + left.name);
 
 	if(left.type != "variable") {
 		// not a variable! return null and hope for the best D:
@@ -577,16 +577,16 @@ function setExp(environment,left,right,onReturn) {
 
 	right.Eval(environment,function(rVal) {
 		environment.SetVariable( left.name, rVal );
-		// console.log("VAL " + environment.GetVariable( left.name ) );
+		// bitsyLog("VAL " + environment.GetVariable( left.name ) );
 		left.Eval(environment,function(lVal) {
 			onReturn( lVal );
 		});
 	});
 }
 function equalExp(environment,left,right,onReturn) {
-	// console.log("EVAL EQUAL");
-	// console.log(left);
-	// console.log(right);
+	// bitsyLog("EVAL EQUAL");
+	// bitsyLog(left);
+	// bitsyLog(right);
 	right.Eval(environment,function(rVal){
 		left.Eval(environment,function(lVal){
 			onReturn( lVal === rVal );
@@ -656,51 +656,51 @@ var Environment = function() {
 	this.SetDialogBuffer = function(buffer) { dialogBuffer = buffer; };
 	this.GetDialogBuffer = function() { return dialogBuffer; };
 
-	var functionMap = new Map();
-	functionMap.set("print", printFunc);
-	functionMap.set("say", printFunc);
-	functionMap.set("br", linebreakFunc);
-	functionMap.set("item", itemFunc);
-	functionMap.set("rbw", rainbowFunc);
-	functionMap.set("clr1", color1Func);
-	functionMap.set("clr2", color2Func);
-    functionMap.set("clr3", color3Func);
-    functionMap.set("clr", colorFunc);
-	functionMap.set("wvy", wavyFunc);
-	functionMap.set("shk", shakyFunc);
-	functionMap.set("printSprite", printSpriteFunc);
-	functionMap.set("printTile", printTileFunc);
-	functionMap.set("printItem", printItemFunc);
-	functionMap.set("debugOnlyPrintFont", printFontFunc); // DEBUG ONLY
-	functionMap.set("end", endFunc);
-	functionMap.set("exit", exitFunc);
-	functionMap.set("pg", pagebreakFunc);
-	functionMap.set("property", propertyFunc);
+	var functionMap = {};
+	functionMap["print"] = printFunc;
+	functionMap["say"] = printFunc;
+	functionMap["br"] = linebreakFunc;
+	functionMap["item"] = itemFunc;
+	functionMap["rbw"] = rainbowFunc;
+	functionMap["clr1"] = color1Func;
+	functionMap["clr2"] = color2Func;
+	functionMap["clr3"] = color3Func;
+    functionMap["clr"] = colorFunc;
+	functionMap["wvy"] = wavyFunc;
+	functionMap["shk"] = shakyFunc;
+	functionMap["printSprite"] = printSpriteFunc;
+	functionMap["printTile"] = printTileFunc;
+	functionMap["printItem"] = printItemFunc;
+	functionMap["debugOnlyPrintFont"] = printFontFunc; // DEBUG ONLY
+	functionMap["end"] = endFunc;
+	functionMap["exit"] = exitFunc;
+	functionMap["pg"] = pagebreakFunc;
+	functionMap["property"] = propertyFunc;
 
-	this.HasFunction = function(name) { return functionMap.has(name); };
+	this.HasFunction = function(name) { return functionMap[name] != undefined; };
 	this.EvalFunction = function(name,parameters,onReturn,env) {
 		if (env == undefined || env == null) {
 			env = this;
 		}
 
-		functionMap.get(name)(env, parameters, onReturn);
+		functionMap[name](env, parameters, onReturn);
 	}
 
-	var variableMap = new Map();
+	var variableMap = {};
 
-	this.HasVariable = function(name) { return variableMap.has(name); };
-	this.GetVariable = function(name) { return variableMap.get(name); };
+	this.HasVariable = function(name) { return variableMap[name] != undefined; };
+	this.GetVariable = function(name) { return variableMap[name]; };
 	this.SetVariable = function(name,value,useHandler) {
-		// console.log("SET VARIABLE " + name + " = " + value);
+		// bitsyLog("SET VARIABLE " + name + " = " + value);
 		if(useHandler === undefined) useHandler = true;
-		variableMap.set(name, value);
+		variableMap[name] = value;
 		if(onVariableChangeHandler != null && useHandler){
 			onVariableChangeHandler(name);
 		}
 	};
 	this.DeleteVariable = function(name,useHandler) {
 		if(useHandler === undefined) useHandler = true;
-		if(variableMap.has(name)) {
+		if(variableMap[name] != undefined) {
 			variableMap.delete(name);
 			if(onVariableChangeHandler != null && useHandler) {
 				onVariableChangeHandler(name);
@@ -708,34 +708,40 @@ var Environment = function() {
 		}
 	};
 
-	var operatorMap = new Map();
-	operatorMap.set("=", setExp);
-	operatorMap.set("==", equalExp);
-	operatorMap.set(">", greaterExp);
-	operatorMap.set("<", lessExp);
-	operatorMap.set(">=", greaterEqExp);
-	operatorMap.set("<=", lessEqExp);
-	operatorMap.set("*", multExp);
-	operatorMap.set("/", divExp);
-	operatorMap.set("+", addExp);
-	operatorMap.set("-", subExp);
+	var operatorMap = {};
+	operatorMap["="] = setExp;
+	operatorMap["=="] = equalExp;
+	operatorMap[">"] = greaterExp;
+	operatorMap["<"] = lessExp;
+	operatorMap[">="] = greaterEqExp;
+	operatorMap["<="] = lessEqExp;
+	operatorMap["*"] = multExp;
+	operatorMap["/"] = divExp;
+	operatorMap["+"] = addExp;
+	operatorMap["-"] = subExp;
 
-	this.HasOperator = function(sym) { return operatorMap.get(sym); };
+	this.HasOperator = function(sym) { return operatorMap[sym] != undefined; };
 	this.EvalOperator = function(sym,left,right,onReturn) {
-		operatorMap.get( sym )( this, left, right, onReturn );
+		operatorMap[ sym ]( this, left, right, onReturn );
 	}
 
-	var scriptMap = new Map();
-	this.HasScript = function(name) { return scriptMap.has(name); };
-	this.GetScript = function(name) { return scriptMap.get(name); };
-	this.SetScript = function(name,script) { scriptMap.set(name, script); };
+	var scriptMap = {};
+	this.HasScript = function(name) { return scriptMap[name] != undefined; };
+	this.GetScript = function(name) { return scriptMap[name]; };
+	this.SetScript = function(name,script) { scriptMap[name] = script; };
 
 	var onVariableChangeHandler = null;
 	this.SetOnVariableChangeHandler = function(onVariableChange) {
 		onVariableChangeHandler = onVariableChange;
 	}
 	this.GetVariableNames = function() {
-		return Array.from( variableMap.keys() );
+		var variableNames = [];
+
+		for (var key in variableMap) {
+			variableNames.push(key);
+		}
+
+		return variableNames;
 	}
 }
 
@@ -817,7 +823,7 @@ function leadingWhitespace(depth) {
 	for(var i = 0; i < depth; i++) {
 		str += "  "; // two spaces per indent
 	}
-	// console.log("WHITESPACE " + depth + " ::" + str + "::");
+	// bitsyLog("WHITESPACE " + depth + " ::" + str + "::");
 	return str;
 }
 
@@ -855,7 +861,7 @@ var TreeRelationship = function() {
 
 	this.rootId = null; // for debugging
 	this.GetId = function() {
-		// console.log(this);
+		// bitsyLog(this);
 		if (this.rootId != null) {
 			return this.rootId;
 		}
@@ -877,7 +883,7 @@ var DialogBlockNode = function(doIndentFirstLine) {
 	this.type = "dialog_block";
 
 	this.Eval = function(environment, onReturn) {
-		// console.log("EVAL BLOCK " + this.children.length);
+		// bitsyLog("EVAL BLOCK " + this.children.length);
 
 		if (isPlayerEmbeddedInEditor && events != undefined && events != null) {
 			events.Raise("script_node_enter", { id: this.GetId() });
@@ -888,9 +894,9 @@ var DialogBlockNode = function(doIndentFirstLine) {
 
 		function evalChildren(children, done) {
 			if (i < children.length) {
-				// console.log(">> CHILD " + i);
+				// bitsyLog(">> CHILD " + i);
 				children[i].Eval(environment, function(val) {
-					// console.log("<< CHILD " + i);
+					// bitsyLog("<< CHILD " + i);
 					lastVal = val;
 					i++;
 					evalChildren(children,done);
@@ -927,15 +933,10 @@ var DialogBlockNode = function(doIndentFirstLine) {
 
 			var curNode = this.children[i];
 
-			var curNodeIsNonInlineCode = curNode.type === "code_block" && !isInlineCode(curNode);
-			var prevNodeIsNonInlineCode = lastNode && lastNode.type === "code_block" && !isInlineCode(lastNode);
-
 			var shouldIndentFirstLine = (i == 0 && doIndentFirstLine);
 			var shouldIndentAfterLinebreak = (lastNode && lastNode.type === "function" && lastNode.name === "br");
-			var shouldIndentCodeBlock = i > 0 && curNodeIsNonInlineCode;
-			var shouldIndentAfterCodeBlock = prevNodeIsNonInlineCode;
 
-			if (shouldIndentFirstLine || shouldIndentAfterLinebreak || shouldIndentCodeBlock || shouldIndentAfterCodeBlock) {
+			if (shouldIndentFirstLine || shouldIndentAfterLinebreak) {
 				str += leadingWhitespace(depth);
 			}
 
@@ -957,7 +958,7 @@ var CodeBlockNode = function() {
 	this.type = "code_block";
 
 	this.Eval = function(environment, onReturn) {
-		// console.log("EVAL BLOCK " + this.children.length);
+		// bitsyLog("EVAL BLOCK " + this.children.length);
 
 		if (isPlayerEmbeddedInEditor && events != undefined && events != null) {
 			events.Raise("script_node_enter", { id: this.GetId() });
@@ -968,9 +969,9 @@ var CodeBlockNode = function() {
 
 		function evalChildren(children, done) {
 			if (i < children.length) {
-				// console.log(">> CHILD " + i);
+				// bitsyLog(">> CHILD " + i);
 				children[i].Eval(environment, function(val) {
-					// console.log("<< CHILD " + i);
+					// bitsyLog("<< CHILD " + i);
 					lastVal = val;
 					i++;
 					evalChildren(children,done);
@@ -996,9 +997,9 @@ var CodeBlockNode = function() {
 			depth = 0;
 		}
 
-		// console.log("SERIALIZE BLOCK!!!");
-		// console.log(depth);
-		// console.log(doIndentFirstLine);
+		// bitsyLog("SERIALIZE BLOCK!!!");
+		// bitsyLog(depth);
+		// bitsyLog(doIndentFirstLine);
 
 		var str = "{"; // todo: increase scope of Sym?
 
@@ -1197,7 +1198,7 @@ var VarNode = function(name) {
 	this.name = name;
 
 	this.Eval = function(environment,onReturn) {
-		// console.log("EVAL " + this.name + " " + environment.HasVariable(this.name) + " " + environment.GetVariable(this.name));
+		// bitsyLog("EVAL " + this.name + " " + environment.HasVariable(this.name) + " " + environment.GetVariable(this.name));
 		if( environment.HasVariable(this.name) )
 			onReturn( environment.GetVariable( this.name ) );
 		else
@@ -1222,11 +1223,11 @@ var ExpNode = function(operator, left, right) {
 	this.right = right;
 
 	this.Eval = function(environment,onReturn) {
-		// console.log("EVAL " + this.operator);
+		// bitsyLog("EVAL " + this.operator);
 		var self = this; // hack to deal with scope
 		environment.EvalOperator( this.operator, this.left, this.right, 
 			function(val){
-				// console.log("EVAL EXP " + self.operator + " " + val);
+				// bitsyLog("EVAL EXP " + self.operator + " " + val);
 				onReturn(val);
 			} );
 		// NOTE : sadly this pushes a lot of complexity down onto the actual operator methods
@@ -1309,7 +1310,7 @@ var SequenceNode = function(options) {
 
 	var index = 0;
 	this.Eval = function(environment, onReturn) {
-		// console.log("SEQUENCE " + index);
+		// bitsyLog("SEQUENCE " + index);
 		this.children[index].Eval(environment, onReturn);
 
 		var next = index + 1;
@@ -1327,7 +1328,7 @@ var CycleNode = function(options) {
 
 	var index = 0;
 	this.Eval = function(environment, onReturn) {
-		// console.log("CYCLE " + index);
+		// bitsyLog("CYCLE " + index);
 		this.children[index].Eval(environment, onReturn);
 
 		var next = index + 1;
@@ -1380,7 +1381,7 @@ var IfNode = function(conditions, results, isSingleLine) {
 
 	var self = this;
 	this.Eval = function(environment, onReturn) {
-		// console.log("EVAL IF");
+		// bitsyLog("EVAL IF");
 		var i = 0;
 		function TestCondition() {
 			self.children[i].Eval(environment, function(result) {
@@ -1532,8 +1533,8 @@ var Parser = function(env) {
 		rootNode.rootId = rootId;
 		var state = new ParserState(rootNode, scriptStr);
 
-		console.log(scriptStr);
-		console.log(state.Source());
+		bitsyLog(scriptStr);
+		bitsyLog(state.Source());
 
 		if (state.MatchAhead(Sym.DialogOpen)) {
 			// multi-line dialog block
@@ -1563,10 +1564,10 @@ var Parser = function(env) {
 		this.Char = function() { return sourceStr[i]; };
 		this.Step = function(n) { if(n===undefined) n=1; i += n; };
 		this.MatchAhead = function(str) {
-			// console.log(str);
+			// bitsyLog(str);
 			str = "" + str; // hack to turn single chars into strings
-			// console.log(str);
-			// console.log(str.length);
+			// bitsyLog(str);
+			// bitsyLog(str.length);
 			for (var j = 0; j < str.length; j++) {
 				if (i + j >= sourceStr.length) {
 					return false;
@@ -1580,12 +1581,12 @@ var Parser = function(env) {
 		this.Peak = function(end) {
 			var str = "";
 			var j = i;
-			// console.log(j);
+			// bitsyLog(j);
 			while (j < sourceStr.length && end.indexOf(sourceStr[j]) == -1) {
 				str += sourceStr[j];
 				j++;
 			}
-			// console.log("PEAK ::" + str + "::");
+			// bitsyLog("PEAK ::" + str + "::");
 			return str;
 		}
 		this.ConsumeBlock = function(open, close, includeSymbols) {
@@ -1623,7 +1624,7 @@ var Parser = function(env) {
 			}
 		}
 
-		this.Print = function() { console.log(sourceStr); };
+		this.Print = function() { bitsyLog(sourceStr); };
 		this.Source = function() { return sourceStr; };
 	};
 
@@ -1879,7 +1880,7 @@ var Parser = function(env) {
 	}
 
 	function IsSequence(str) {
-		// console.log("IsSequence? " + str);
+		// bitsyLog("IsSequence? " + str);
 		return str === "sequence" || str === "cycle" || str === "shuffle";
 	}
 
@@ -2003,16 +2004,16 @@ var Parser = function(env) {
 	}
 
 	function ParseFunction(state, funcName) {
-		console.log("~~~ PARSE FUNCTION " + funcName);
+		bitsyLog("~~~ PARSE FUNCTION " + funcName);
 
 		var args = [];
 
 		var curSymbol = "";
 		function OnSymbolEnd() {
 			curSymbol = curSymbol.trim();
-			// console.log("PARAMTER " + curSymbol);
+			// bitsyLog("PARAMTER " + curSymbol);
 			args.push( StringToValue(curSymbol) );
-			// console.log(args);
+			// bitsyLog(args);
 			curSymbol = "";
 		}
 
@@ -2027,7 +2028,7 @@ var Parser = function(env) {
 			else if( state.MatchAhead(Sym.String) ) {
 				/* STRING LITERAL */
 				var str = state.ConsumeBlock(Sym.String, Sym.String);
-				// console.log("STRING " + str);
+				// bitsyLog("STRING " + str);
 				args.push( new LiteralNode(str) );
 				curSymbol = "";
 			}
@@ -2052,7 +2053,7 @@ var Parser = function(env) {
 	function IsValidVariableName(str) {
 		var reg = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 		var isValid = reg.test(str);
-		// console.log("VALID variable??? " + isValid);
+		// bitsyLog("VALID variable??? " + isValid);
 		return isValid;
 	}
 
@@ -2066,14 +2067,14 @@ var Parser = function(env) {
 		}
 		else if(valStr[0] === Sym.String) {
 			// STRING!!
-			// console.log("STRING");
+			// bitsyLog("STRING");
 			var str = "";
 			var i = 1;
 			while (i < valStr.length && valStr[i] != Sym.String) {
 				str += valStr[i];
 				i++;
 			}
-			// console.log(str);
+			// bitsyLog(str);
 			return new LiteralNode( str );
 		}
 		else if(valStr === "true") {
@@ -2086,12 +2087,12 @@ var Parser = function(env) {
 		}
 		else if( !isNaN(parseFloat(valStr)) ) {
 			// NUMBER!!
-			// console.log("NUMBER!!! " + valStr);
+			// bitsyLog("NUMBER!!! " + valStr);
 			return new LiteralNode( parseFloat(valStr) );
 		}
 		else if(IsValidVariableName(valStr)) {
 			// VARIABLE!!
-			// console.log("VARIABLE");
+			// bitsyLog("VARIABLE");
 			return new VarNode(valStr); // TODO : check for valid potential variables
 		}
 		else {
@@ -2232,9 +2233,9 @@ var Parser = function(env) {
 
 	function ParseExpression(state) {
 		var line = state.Source(); // state.Peak( [Sym.Linebreak] ); // TODO : remove the linebreak thing
-		// console.log("EXPRESSION " + line);
+		// bitsyLog("EXPRESSION " + line);
 		var exp = CreateExpression(line);
-		// console.log(exp);
+		// bitsyLog(exp);
 		state.curNode.AddChild(exp);
 		state.Step(line.length);
 		return state;
