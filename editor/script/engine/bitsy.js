@@ -1511,7 +1511,7 @@ function parseDrawingCore(lines, i, drwId) {
             while (y < drawingSize) {
                 var l = frame[y].split(",") || '';
                 var row = [];
-                for (x = 0; x < tilesize; x++) {
+                for (x = 0; x < drawingSize; x++) {
                     var parsedPixel = parseInt(l[x]);
                     parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
                     row.push(parsedPixel);
@@ -1527,7 +1527,7 @@ function parseDrawingCore(lines, i, drwId) {
             while (y < drawingSize) {
                 var l = frame[y] || '';
                 var row = [];
-                for (x = 0; x < tilesize; x++) {
+                for (x = 0; x < drawingSize; x++) {
                     var parsedPixel = parseInt(l.charAt(x));
                     parsedPixel = isNaN(parsedPixel) ? 0 : parsedPixel;
                     row.push(parsedPixel);

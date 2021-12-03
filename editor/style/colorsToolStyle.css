@@ -1,6 +1,19 @@
 :root {
-	--bitsy-color-contrast-with-light: black;
-	--bitsy-color-contrast-with-dark: white;
+    --bitsy-color-contrast-with-light: black;
+    --bitsy-color-contrast-with-dark: white;
+    --bitsy-size-color-height: calc(0.5 * var(--bitsy-size-m));
+}
+
+#colorPaletteViewport {
+    height: var(--bitsy-size-color-height);
+    overflow: scroll;
+    display: block;
+    border: solid var(--bitsy-space-xs) var(--bitsy-color-accent-2);
+    border-radius: var(--bitsy-space-s);
+    margin-bottom: var(--bitsy-space-m);
+    line-height: 1;
+    background: var(--bitsy-color-accent-1);
+    white-space: normal;
 }
 
 #colorPaletteForm input[type=radio] {
@@ -37,7 +50,7 @@
 }
 
 #colorPaletteForm input[type=radio] + label {
-	display: block;
+	display: inline-block;
 	margin-bottom: var(--bitsy-space-s);
 	background: var(--bitsy-color-accent-1);
 	border-radius: var(--bitsy-space-s);

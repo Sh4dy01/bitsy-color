@@ -43,6 +43,9 @@ function renderTileFromDrawingData(drawingData, col) {
 
 	var backgroundColor = tileColorStartIndex + 0;
 	var foregroundColor = tileColorStartIndex + col;
+    if(typeof col == 'string') {
+        foregroundColor = col;
+    }
 
     bitsyDrawBegin(tileId);
     overideBufferSize(tileId, tilesize, tilesize, scale)
@@ -55,7 +58,7 @@ function renderTileFromDrawingData(drawingData, col) {
 				bitsyDrawPixel(foregroundColor, x, y);
 			}
 			else {
-				bitsyDrawPixel(backgroundColor, x, y);
+                bitsyDrawPixel(tileColorStartIndex+px, x, y);
 			}
 		}
 	}

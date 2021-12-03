@@ -1,11 +1,11 @@
 /* logging */
 var DebugLogCategory = {
-	system: false,
+	system: true,
 	bitsy : false,
 	editor : false,
 };
 
-var isLoggingVerbose = false;
+var isLoggingVerbose = true;
 
 /* input */
 var key = {
@@ -413,14 +413,23 @@ function createDrawingBuffer(width, height, scale) {
 function renderPixelInstruction(bufferId, buffer, paletteIndex, x, y) {
 	if (bufferId === screenBufferId && curGraphicsMode != 0) {
 		return;
-	}
+    }
 
-	if (!systemPalette[paletteIndex]) {
-		// bitsyLog("invalid index " + paletteIndex + " @ " + x + "," + y, "system");
-		return;
-	}
+    var color = []
 
-	var color = systemPalette[paletteIndex];
+    if (typeof paletteIndex == 'string' && paletteIndex != 'NaN') {
+        var temp = hexToRgb(paletteIndex);
+        color[0] = temp.r;
+        color[1] = temp.g;
+        color[2] = temp.b;
+    } else {
+        if (!systemPalette[paletteIndex]) {
+            //bitsyLog("invalid index " + paletteIndex + " @ " + x + "," + y, "system");
+            return;
+        }
+
+        color = systemPalette[paletteIndex];
+    }
 
 	if (buffer.imageData) {
 		for (var sy = 0; sy < buffer.scale; sy++) {
@@ -527,6 +536,14 @@ function invalidateDrawingBuffer(buffer) {
 	buffer.canvas = null;
 }
 
+function overideBufferSize(bufferid, width, height, scale) {
+    var buffer = drawingBuffers[curBufferId];
+    invalidateDrawingBuffer(buffer)
+    buffer.width = width;
+    buffer.height = height;
+    buffer.scale = scale;
+}
+
 function hackForEditor_GetImageFromTileId(tileId) {
 	if (tileId === undefined || !drawingBuffers[tileId]) {
 		bitsyLog("editor hack::invalid tile id!", "system");
@@ -622,9 +639,9 @@ function bitsyResetColors() {
 }
 
 function bitsyDrawBegin(bufferId) {
-	curBufferId = bufferId;
-	var buffer = drawingBuffers[curBufferId];
-	invalidateDrawingBuffer(buffer);
+    curBufferId = bufferId;
+    var buffer = drawingBuffers[curBufferId];
+    invalidateDrawingBuffer(buffer);
 }
 
 function bitsyDrawEnd() {
@@ -637,10 +654,16 @@ function bitsyDrawPixel(paletteIndex, x, y) {
 	}
 
 	// avoid trying to render out-of-bounds colors
-	if (paletteIndex >= systemPalette.length) {
-		bitsyLog("invalid color! " + paletteIndex, "system");
-		paletteIndex = systemPalette.length - 1;
-	}
+    if (typeof paletteIndex == 'string' && paletteIndex != 'NaN') {
+    } else {
+        if (paletteIndex == 'NaN') {
+            bitsyLog("invalid color! " + paletteIndex, "system");
+            paletteIndex = systemPalette.length - 1;
+        }else if (paletteIndex >= systemPalette.length) {
+            bitsyLog("invalid color! " + paletteIndex, "system");
+            paletteIndex = systemPalette.length - 1;
+        }
+    }
 
 	var buffer = drawingBuffers[curBufferId];
 	buffer.instructions.push({ type: DrawingInstruction.Pixel, id: paletteIndex, x: x, y: y, });
@@ -649,7 +672,7 @@ function bitsyDrawPixel(paletteIndex, x, y) {
 function bitsyDrawTile(tileId, x, y) {
 	if (curBufferId != screenBufferId || curGraphicsMode != 1) {
 		return;
-	}
+    }
 
 	var buffer = drawingBuffers[curBufferId];
 	buffer.instructions.push({ type: DrawingInstruction.Tile, id: tileId, x: x, y: y, });
