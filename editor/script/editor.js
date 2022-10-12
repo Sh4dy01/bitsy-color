@@ -2124,9 +2124,9 @@ function on_paint_tile_ui_update() {
 }
 
 function on_paint_sprite() {
-	if (sortedSpriteIdList().length > 1)
+	if (sortedSpriteIdList().length > 2)
 	{
-		spriteIndex = 1;
+		spriteIndex = 2;
 	}
 	else {
 		spriteIndex = 0; //fall back to avatar if no other sprites exist
