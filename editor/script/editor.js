@@ -3077,15 +3077,19 @@ function addTileAnimation() {
 	//mark tile as animated
 	tile[drawing.id].animation.isAnimated = true;
 	tile[drawing.id].animation.frameIndex = 0;
-	tile[drawing.id].animation.frameCount = 2;
+	tile[drawing.id].animation.frameCount = 3;
 
 	//add blank frame to tile (or restore removed animation)
 	var tileImageId = "TIL_" + drawing.id;
 	if (tile[drawing.id].cachedAnimation && tile[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(tileImageId, tile[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(tileImageId, 0, tile[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(tileImageId, 1, tile[drawing.id].cachedAnimation[1]);
+		addDrawingAnimation(tileImageId, 2, tile[drawing.id].cachedAnimation[2]);
 	}
 	else {
-		addDrawingAnimation(tileImageId);
+		addDrawingAnimation(tileImageId, 0);
+		addDrawingAnimation(tileImageId, 0);
+		addDrawingAnimation(tileImageId, 0);
 	}
 
 	// refresh images
@@ -3138,10 +3142,14 @@ function addItemAnimation() {
 	//add blank frame to item (or restore removed animation)
 	var itemImageId = "ITM_" + drawing.id;
 	if (item[drawing.id].cachedAnimation && item[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(itemImageId, item[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(itemImageId, 0, item[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(itemImageId, 1, item[drawing.id].cachedAnimation[1]);
+		addDrawingAnimation(itemImageId, 2, item[drawing.id].cachedAnimation[2]);
 	}
 	else {
-		addDrawingAnimation(itemImageId);
+		addDrawingAnimation(itemImageId, 0);
+		addDrawingAnimation(itemImageId, 1);
+		addDrawingAnimation(itemImageId, 2);
 	}
 
 	// refresh images

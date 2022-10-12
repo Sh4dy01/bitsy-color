@@ -1412,7 +1412,7 @@ function parseSprite(lines, i) {
 
 	// update animation info
 	spriteData.animation.frameCount = renderer.GetFrameCount(spriteData.drw);
-	spriteData.animation.isAnimated = spriteData.animation.frameCount > 1;
+	spriteData.animation.isAnimated = spriteData.animation.frameCount > 2;
 
 	// read other properties
 	while (i < lines.length && lines[i].length > 0) { // look for empty line
@@ -1469,7 +1469,7 @@ function parseItem(lines, i) {
 
 	// update animation info
 	itemData.animation.frameCount = renderer.GetFrameCount(itemData.drw);
-	itemData.animation.isAnimated = itemData.animation.frameCount > 1;
+	itemData.animation.isAnimated = itemData.animation.frameCount > 2;
 
 	// read other properties
 	while (i < lines.length && lines[i].length > 0) { // look for empty line
