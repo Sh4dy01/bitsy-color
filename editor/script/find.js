@@ -11,15 +11,15 @@ function FindTool(options) {
 		{
 			id: "avatar",
 			icon: "avatar",
-			getIdList: function() { return ["A"]; },
+			getIdList: function() { return ["A",["B"]]; },
 			getCategoryName: function() {
 				return localization.GetStringOrFallback("avatar_label", "avatar");
 			},
 			getItemName: function(id) {
-				return localization.GetStringOrFallback("avatar_label", "avatar");
+				return sprite[id].name;
 			},
 			getItemDescription: function(id) {
-				return localization.GetStringOrFallback("avatar_label", "avatar");
+				return localization.GetStringOrFallback("avatar_label", "avatar") + " " + id;
 			},
 			isItemSelected: function(id) {
 				return (drawing.type === TileType.Avatar) && (drawing.id === id);
@@ -69,7 +69,7 @@ function FindTool(options) {
 			icon: "sprite",
 			getIdList: function() {
 				var idList = sortedSpriteIdList();
-				idList.splice(idList.indexOf("A"), 1);
+				idList.splice(idList.indexOf("A"), 2);
 				return idList;
 			},
 			getCategoryName: function() {

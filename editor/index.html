@@ -652,11 +652,11 @@
 							<input title="a name to refer to this drawing" type="text" id="drawingName" class="textInputField" onchange="on_drawing_name_change();"></input>
 
 							<!-- prev / next -->
-							<button title="previous drawing" class="color0 disableForAvatar" onclick="prev();">
+							<button title="previous drawing" class="color0" onclick="prev();">
 								<span class="bitsy_icon">previous</span>
 							</button>
 
-							<button title="next drawing" class="color0 disableForAvatar" onclick="next();">
+							<button title="next drawing" class="color0" onclick="next();">
 								<span class="bitsy_icon">next</span>
 							</button>
 
@@ -792,6 +792,14 @@
 										</div>
 										<label class="bitsy-menu-label">
 											<span class="localize animation_frame2">frame 2</span>
+										</label>
+									</div>
+									<div id="animationKeyframe3" class="bitsy-thumbnail" onclick="on_paint_frame3();">
+										<div class="bitsy-thumbnail-image-container">
+											<img id="animationThumbnailFrame3" />
+										</div>
+										<label class="bitsy-menu-label">
+											<span class="localize animation_frame3">frame 3</span>
 										</label>
 									</div>
 								</div>

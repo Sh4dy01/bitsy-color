@@ -63,6 +63,10 @@ function ThumbnailRenderer() {
 			thumbnailDraw(drawing, drawingThumbnailCtx, 0, 0, 1 /*frameIndex*/);
 			drawingFrameData.push( drawingThumbnailCtx.getImageData(0,0,8*scale,8*scale).data );
 		}
+		if( isAnimated || frameIndex == 2 ) {
+			thumbnailDraw(drawing, drawingThumbnailCtx, 0, 0, 2 /*frameIndex*/);
+			drawingFrameData.push( drawingThumbnailCtx.getImageData(0,0,8*scale,8*scale).data );
+		}
 
 		// create encoder
 		var gifData = {

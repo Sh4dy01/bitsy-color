@@ -369,7 +369,7 @@ function parseWorld(file) {
 		else if (getType(curLine) === "TIL") {
 			i = parseTile(lines, i);
 		}
-		else if (getType(curLine) === "SPR") {
+		else if (getType(curLine) === "SPR" || getType(curLine) === "AVA") {
 			i = parseSprite(lines, i);
 		}
 		else if (getType(curLine) === "DRW") {

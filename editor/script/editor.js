@@ -647,6 +647,7 @@ function resetGameData() {
 	// todo wrap these variable resets in a function
 	tileIndex = 0;
 	spriteIndex = 0;
+	avatarIndex = 0;
 
 	refreshGameData();
 
@@ -722,6 +723,7 @@ var drawing;
 
 var tileIndex = 0;
 var spriteIndex = 0;
+var avatarIndex = 0;
 var itemIndex = 0;
 
 /* ROOM */
@@ -1533,7 +1535,7 @@ function nextSprite() {
 
 	spriteIndex = (spriteIndex + 1) % ids.length;
 	if (spriteIndex === 0) {
-		spriteIndex = 1; //skip avatar
+		spriteIndex = 2; //skip avatar
 	}
 
 	var spriteId = ids[spriteIndex];
@@ -1547,7 +1549,7 @@ function prevSprite() {
 	var ids = sortedSpriteIdList();
 
 	spriteIndex = (spriteIndex - 1) % ids.length;
-	if (spriteIndex <= 0) {
+	if (spriteIndex <= 1) {
 		spriteIndex = (ids.length - 1); //loop and skip avatar
 	}
 
@@ -1558,15 +1560,49 @@ function prevSprite() {
 	paintTool.reloadDrawing();
 }
 
+function nextAvatar() {
+	var ids = sortedSpriteIdList();
+
+	avatarIndex = (avatarIndex + 1) % ids.length;
+	console.log(avatarIndex);
+	if (avatarIndex > 1) {
+		avatarIndex = 0;
+	}
+
+	var avatarId = ids[avatarIndex];
+	drawing = sprite[avatarId];
+
+	paintTool.curDrawingFrameIndex = 0;
+	paintTool.reloadDrawing();
+}
+
+function prevAvatar() {
+	var ids = sortedSpriteIdList();
+
+	avatarIndex = (avatarIndex - 1) % ids.length;
+	if (avatarIndex < 0) {
+		avatarIndex = (ids.length - 1); 
+	}
+
+	var avatarId = ids[avatarIndex];
+	drawing = sprite[avatarId];
+
+	paintTool.curDrawingFrameIndex = 0;
+	paintTool.reloadDrawing();
+}
+
 function next() {
 	if (drawing.type == TileType.Tile) {
 		nextTile();
 	}
-	else if( drawing.type == TileType.Avatar || drawing.type == TileType.Sprite ) {
+	else if( drawing.type == TileType.Sprite ) {
 		nextSprite();
 	}
 	else if( drawing.type == TileType.Item ) {
 		nextItem();
+	}
+	else if( drawing.type == TileType.Avatar ) {
+		nextAvatar();
 	}
 
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
@@ -1576,11 +1612,14 @@ function prev() {
 	if (drawing.type == TileType.Tile) {
 		prevTile();
 	}
-	else if( drawing.type == TileType.Avatar || drawing.type == TileType.Sprite ) {
+	else if( drawing.type == TileType.Sprite ) {
 		prevSprite();
 	}
 	else if( drawing.type == TileType.Item ) {
 		prevItem();
+	}
+	else if( drawing.type == TileType.Avatar ) {
+		prevAvatar();
 	}
 
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
@@ -1654,11 +1693,19 @@ function reloadTile() {
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
+		}
+		else if( paintTool.curDrawingFrameIndex == 2 )
+		{
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
@@ -1712,11 +1759,19 @@ function reloadSprite() {
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
+		}
+		else if( paintTool.curDrawingFrameIndex == 2 )
+		{
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
@@ -1751,11 +1806,19 @@ function reloadItem() {
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
 		}
 		else if( paintTool.curDrawingFrameIndex == 1 )
 		{
 			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
 			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail bitsy-thumbnail-selected";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail";
+		}
+		else if( paintTool.curDrawingFrameIndex == 2 )
+		{
+			document.getElementById("animationKeyframe1").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe2").className = "bitsy-thumbnail";
+			document.getElementById("animationKeyframe3").className = "bitsy-thumbnail bitsy-thumbnail-selected";
 		}
 
 		document.getElementById("animation").setAttribute("style","display:block;");
@@ -1999,10 +2062,7 @@ function roomPaletteChange(event) {
 function updateDrawingNameUI() {
 	var obj = paintTool.getCurObject();
 
-	if (drawing.type == TileType.Avatar) { // hacky
-		document.getElementById("drawingName").value = "avatar"; // TODO: localize
-	}
-	else if (obj.name != null) {
+	if (obj.name != null) {
 		document.getElementById("drawingName").value = obj.name;
 	}
 	else {
@@ -2010,8 +2070,6 @@ function updateDrawingNameUI() {
 	}
 
 	document.getElementById("drawingName").placeholder = getCurPaintModeStr() + " " + drawing.id;
-
-	document.getElementById("drawingName").readOnly = (drawing.type == TileType.Avatar);
 }
 
 function on_paint_avatar() {
@@ -2167,6 +2225,8 @@ function renderAnimationPreview(drawing) {
 	renderAnimationThumbnail("animationThumbnailPreview", drawing);
 	renderAnimationThumbnail("animationThumbnailFrame1", drawing, 0);
 	renderAnimationThumbnail("animationThumbnailFrame2", drawing, 1);
+	renderAnimationThumbnail("animationThumbnailFrame3", drawing, 2);
+
 }
 function selectColor() {
     console.log(this);
@@ -2255,11 +2315,10 @@ function on_game_data_change_core() {
 		drawing = item[sortedItemIdList()[0]];
 	}
 	else if (curPaintMode === TileType.Avatar) {
-		drawing = sprite["A"];
+		drawing = sprite[sortedSpriteIdList()[0]];
 	}
 	else if (curPaintMode === TileType.Sprite) {
-		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
-	}
+		drawing = sprite[sortedSpriteIdList().filter(function (id) { return (id != "A" && id != "B"); })[0]];	}
 
 	paintTool.reloadDrawing();
 
@@ -2958,16 +3017,20 @@ function addSpriteAnimation() {
 	//mark sprite as animated
 	sprite[drawing.id].animation.isAnimated = true;
 	sprite[drawing.id].animation.frameIndex = 0;
-	sprite[drawing.id].animation.frameCount = 2;
+	sprite[drawing.id].animation.frameCount = 3;
 
 	//add blank frame to sprite (or restore removed animation)
 	var spriteImageId = "SPR_" + drawing.id;
 
 	if (sprite[drawing.id].cachedAnimation && sprite[drawing.id].cachedAnimation.length >= 1) {
-		addDrawingAnimation(spriteImageId, sprite[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(spriteImageId, 0, sprite[drawing.id].cachedAnimation[0]);
+		addDrawingAnimation(spriteImageId, 1, sprite[drawing.id].cachedAnimation[1]);
+		addDrawingAnimation(spriteImageId, 2, sprite[drawing.id].cachedAnimation[2]);
 	}
 	else {
-		addDrawingAnimation(spriteImageId);
+		addDrawingAnimation(spriteImageId, 0);
+		addDrawingAnimation(spriteImageId, 1);
+		addDrawingAnimation(spriteImageId, 2);
 	}
 
 	// refresh images
@@ -3117,7 +3180,7 @@ function removeItemAnimation() {
 	resetAllAnimations();
 }
 
-function addDrawingAnimation(drwId, frameData) {
+function addDrawingAnimation(drwId, frameIndex, frameData) {
 	var drawingSource = renderer.GetDrawingSource(drwId);
 
 	if (!frameData) {
@@ -3133,7 +3196,7 @@ function addDrawingAnimation(drwId, frameData) {
 		}
 	}
 
-	drawingSource[1] = frameData;
+	drawingSource[frameIndex] = frameData;
 
 	renderer.SetDrawingSource(drwId, drawingSource);
 }
@@ -3158,6 +3221,11 @@ function on_paint_frame1() {
 
 function on_paint_frame2() {
 	paintTool.curDrawingFrameIndex = 1;
+	paintTool.reloadDrawing();
+}
+
+function on_paint_frame3() {
+	paintTool.curDrawingFrameIndex = 2;
 	paintTool.reloadDrawing();
 }
 
