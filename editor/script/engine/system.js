@@ -1,6 +1,6 @@
 /* logging */
 var DebugLogCategory = {
-	system: true,
+	system: false,
 	bitsy : false,
 	editor : false,
 };
@@ -20,6 +20,7 @@ var key = {
 	s : 83,
 	d : 68,
 	r : 82,
+	e : 69,
 	shift : 16,
 	ctrl : 17,
 	alt : 18,
@@ -598,6 +599,8 @@ function bitsyGetButton(buttonCode) {
 			return (input.anyKeyDown() || input.isTapReleased());
 		case 5: // MENU / RESTART (restart the game: "ctrl+r" on keyboard, no touch control yet)
 			return input.isRestartComboPressed();
+		case 6: // SPECIAL
+			return input.isKeyDown(key.e);
 	}
 
 	return false;

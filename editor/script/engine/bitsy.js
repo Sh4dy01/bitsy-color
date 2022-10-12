@@ -273,9 +273,10 @@ function update() {
 
 var isAnyButtonHeld = false;
 var isIgnoringInput = false;
+var isSwap = false;
 
 function isAnyButtonDown() {
-	return bitsyGetButton(0) || bitsyGetButton(1) || bitsyGetButton(2) || bitsyGetButton(3) || bitsyGetButton(4);
+	return bitsyGetButton(0) || bitsyGetButton(1) || bitsyGetButton(2) || bitsyGetButton(3) || bitsyGetButton(4) || bitsyGetButton(6);
 }
 
 function updateInput() {
@@ -329,6 +330,17 @@ function updateInput() {
 
 	if (!isAnyButtonDown()) {
 		isIgnoringInput = false;
+		isSwap = false;
+	}
+
+	if (bitsyGetButton(6) && !isSwap) {
+		console.log("swap");
+		if (playerId === "A") {
+			playerId = "B";
+		} else {
+			playerId = "A"
+		}
+		isSwap = true;
 	}
 
 	isAnyButtonHeld = isAnyButtonDown();
@@ -776,7 +788,7 @@ function parseWorld(file) {
        else if (getType(curLine) === "TIL") {
 			i = parseTile(lines, i);
 		}
-		else if (getType(curLine) === "SPR") {
+		else if (getType(curLine) === "SPR" || getType(curLine) === "AVA") {
 			i = parseSprite(lines, i);
 		}
 		else if (getType(curLine) === "ITM") {
@@ -1014,7 +1026,11 @@ function serializeWorld(skipFonts) {
 	}
 	/* SPRITES */
 	for (id in sprite) {
-		worldStr += "SPR " + id + "\n";
+		if (id === "A" || id === "B") {
+			worldStr += "AVA " + id + "\n";
+		} else {
+			worldStr += "SPR " + id + "\n";
+		}
 		worldStr += serializeDrawing( "SPR_" + id );
 		if (sprite[id].name != null && sprite[id].name != undefined) {
 			/* NAME */
@@ -1379,7 +1395,7 @@ function parseTile(lines, i) {
 
 function parseSprite(lines, i) {
 	var id = getId(lines[i]);
-	var type = (id === "A") ? "AVA" : "SPR";
+	var type = (id === "A" || id === "B") ? "AVA" : "SPR";
 	var spriteData = createDrawingData(type, id);
 
 	bitsyLog(spriteData);
