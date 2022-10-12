@@ -20,10 +20,10 @@ function updateInventoryItemUI(){
 	function createOnItemValueChange(id) {
 		return function(event) {
 			if(event.target.value <= 0) {
-				delete player().inventory[id];
+				delete globalInventory().inventory[id];
 			}
 			else {
-				player().inventory[id] = parseFloat( event.target.value );
+				globalInventory().inventory[id] = parseFloat( event.target.value );
 			}
 			if(!isPlayMode)
 				refreshGameData();
@@ -37,7 +37,7 @@ function updateInventoryItemUI(){
 		// bitsyLog( id , "editor");
 		// bitsyLog( player() , "editor");
 		// bitsyLog( player().inventory , "editor");
-		var itemCount = player().inventory[id] != undefined ? parseFloat( player().inventory[id] ) : 0;
+		var itemCount = globalInventory().inventory[id] != undefined ? parseFloat( globalInventory().inventory[id] ) : 0;
 
 		var itemDiv = document.createElement("div");
 		itemDiv.classList.add("controlBox");

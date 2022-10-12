@@ -457,19 +457,19 @@ function movePlayer(direction) {
 
 	// do items first, because you can pick up an item AND go through a door
 	if (itmIndex > -1) {
-		var itm = room[player().room].items[itmIndex];
-		var itemRoom = player().room;
+		var itm = room[globalInventory().room].items[itmIndex];
+		var itemRoom = globalInventory().room;
 
 		startItemDialog(itm.id, function() {
 			// remove item from room
 			room[itemRoom].items.splice(itmIndex, 1);
 
 			// update player inventory
-			if (player().inventory[itm.id]) {
-				player().inventory[itm.id] += 1;
+			if (globalInventory().inventory[itm.id]) {
+				globalInventory().inventory[itm.id] += 1;
 			}
 			else {
-				player().inventory[itm.id] = 1;
+				globalInventory().inventory[itm.id] = 1;
 			}
 
 			// show inventory change in UI
@@ -716,7 +716,12 @@ function getTile(x,y) {
 }
 
 function player() {
+	console.log(globalInventory().inventory);
 	return sprite[playerId];
+}
+
+function globalInventory() {
+	return sprite["A"];
 }
 
 // Sort of a hack for legacy palette code (when it was just an array)

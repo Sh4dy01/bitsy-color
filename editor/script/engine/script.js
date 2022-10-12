@@ -435,12 +435,12 @@ function itemFunc(environment,parameters,onReturn) {
 		itemId = names.item[itemId];
 	}
 
-	var curItemCount = player().inventory[itemId] ? player().inventory[itemId] : 0;
+	var curItemCount = globalInventory().inventory[itemId] ? globalInventory().inventory[itemId] : 0;
 
 	if (parameters.length > 1) {
 		// TODO : is it a good idea to force inventory to be >= 0?
-		player().inventory[itemId] = Math.max(0, parseInt(parameters[1]));
-		curItemCount = player().inventory[itemId];
+		globalInventory().inventory[itemId] = Math.max(0, parseInt(parameters[1]));
+		curItemCount = globalInventory().inventory[itemId];
 
 		if (onInventoryChanged != null) {
 			onInventoryChanged(itemId);
