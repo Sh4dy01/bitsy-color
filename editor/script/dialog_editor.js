@@ -941,6 +941,16 @@ function DialogTool() {
 		div.appendChild(
 			makeActionBuilderButton(
 				"item",
+				localization.GetStringOrFallback("dialog_action_item_say", "say item count"),
+				function() {
+					var node = scriptUtils.CreateFunctionBlock("say", []);
+					node.children[0].args.push(scriptUtils.CreateFunctionBlock("item", ["0"])); // hacky
+					var editor = new FunctionEditor(node, parentEditor);
+					return editor;
+				}));
+		div.appendChild(
+			makeActionBuilderButton(
+				"item",
 				localization.GetStringOrFallback("dialog_action_item_set", "set item count"),
 				function() {
 					var node = scriptUtils.CreateFunctionBlock("item", ["0", 10]);
@@ -975,7 +985,6 @@ function DialogTool() {
 					var editor = new FunctionEditor(node, parentEditor);
 					return editor;
 				}));
-
 		div.appendChild(
 			makeActionBuilderButton(
 				"item",
